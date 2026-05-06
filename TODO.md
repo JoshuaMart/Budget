@@ -9,11 +9,11 @@
 ### 0.1 Tooling de base
 - [x] Installer Bun (`curl -fsSL https://bun.sh/install | bash`) et vérifier `bun --version`.
 - [x] Installer pnpm (`npm i -g pnpm` ou via Corepack).
-- [ ] Initialiser le projet SvelteKit : `pnpm create svelte@latest .` (template *Skeleton*, TypeScript strict, ESLint, Prettier, Vitest, Playwright).
-- [ ] Pin `"packageManager": "pnpm@…"` dans `package.json`.
-- [ ] Ajouter `engines` (`node` / `bun` versions cibles) dans `package.json`.
-- [ ] `pnpm install` pour générer le lockfile (`pnpm-lock.yaml`).
-- [ ] Vérifier que `bun run dev` (ou `pnpm dev` qui lance Vite) démarre la page d'accueil.
+- [x] Initialiser le projet SvelteKit via `pnpm dlx sv create . --template minimal --types ts --add prettier --add eslint --add vitest=usages:unit --add playwright --install pnpm`.
+- [x] Pin `"packageManager": "pnpm@10.33.0"` dans `package.json`.
+- [x] Ajouter `engines` (`bun >=1.3.0`, `node >=20.0.0`) dans `package.json`.
+- [x] Lockfile `pnpm-lock.yaml` généré par le scaffolding.
+- [x] `pnpm dev` démarre Vite, la page d'accueil SvelteKit répond en HTTP 200.
 
 ### 0.2 Configuration SvelteKit
 - [ ] Activer `@sveltejs/adapter-bun` dans `svelte.config.js`.
