@@ -45,15 +45,16 @@
 
 ### 1.2 Schéma Drizzle (`src/lib/server/db/schema.ts`)
 
-- [ ] Tables `user`, `session`, `account_auth`, `verification` requises par better-auth.
-- [ ] Table `account` (comptes bancaires) : `id`, `userId`, `label`, `initialBalance`, `type`, `createdAt`.
-- [ ] Table `envelope` : `id`, `userId`, `key` (`necessities`|`wants`|`investments`), `label`, `ratio`, `color`, `position`. Unique (`userId`, `key`).
-- [ ] Table `category` : `id`, `userId`, `envelopeId`, `label`, `icon`, `position`, `isVirtual` (true pour « Non catégorisé »).
-- [ ] Table `transaction` : `id`, `userId`, `date`, `merchant`, `amountCents` (entier signé), `accountId`, `toAccountId`, `envelopeId`, `categoryId`, `incomeCategory`, `kind`, `recurringId`, `createdAt`.
-- [ ] Table `recurring` : `id`, `userId`, `merchant`, `amountCents`, `frequency`, `dayOfMonth`, `accountId`, `toAccountId`, `envelopeId`, `categoryId`, `incomeCategory`, `kind`, `nextDate`, `active`.
-- [ ] Index : `transaction(userId, date)`, `transaction(userId, envelopeId, date)`, `recurring(userId, active, nextDate)`.
-- [ ] Foreign keys avec `ON DELETE` adapté (cascade pour user → tout, `SET NULL` pour catégorie → transaction).
-- [ ] Décision : tous les montants sont stockés en **centimes (entier)** pour éviter les flottants.
+- [x] Tables `user`, `session`, `account_auth`, `verification` (better-auth). Renommage `account` → `account_auth` pour éviter le conflit avec la table comptes bancaires (sera mappé via la config better-auth en 2.1).
+- [x] Table `account` (bancaire) : `id`, `userId`, `label`, `initialBalanceCents`, `type` (`checking`|`savings`), `createdAt`.
+- [x] Table `envelope` : `id`, `userId`, `key`, `label`, `ratio`, `color`, `position`. **Unique (`userId`, `key`)**.
+- [x] Table `category` : `id`, `userId`, `envelopeId`, `label`, `icon`, `position`, `isVirtual`.
+- [x] Table `transaction` : tous les champs spécifiés, `kind` enum, `recurringId` FK auto-référencée (recurring déclaré avant transaction pour éviter le forward-ref).
+- [x] Table `recurring` : tous les champs spécifiés.
+- [x] Index : `tx_user_date_idx`, `tx_user_envelope_date_idx`, `rec_user_active_next_idx`, plus uniques générés par les `.unique()` (email, token, envelope key).
+- [x] FKs : `ON DELETE cascade` sur user→toutes-tables, account→transaction/recurring (côté `accountId`), envelope→category. `SET NULL` sur `toAccountId`, `envelopeId`, `categoryId`, `recurringId` (transactions historiques préservées).
+- [x] Tous les montants en **centimes (integer signé)** : `initialBalanceCents`, `amountCents`.
+- [x] **Bonus** : runner de migrations custom `src/lib/server/db/migrate.ts` (drizzle-kit ne supporte pas `bun:sqlite` — on utilise `drizzle-orm/bun-sqlite/migrator` qui réutilise notre `client.ts`). Migration `0000_*.sql` générée et validée sur DB jetable (FKs enforced, cascade OK, booleans OK).
 
 ### 1.3 Migrations + seed
 
