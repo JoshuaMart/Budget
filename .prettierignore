@@ -11,3 +11,4 @@ bun.lockb
 /.claude/
 /.svelte-kit/
 /build/
+/drizzle/

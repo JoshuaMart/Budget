@@ -37,10 +37,11 @@
 
 ### 1.1 Setup
 
-- [ ] `pnpm add drizzle-orm` et `pnpm add -D drizzle-kit`.
-- [ ] Créer `src/lib/server/db/client.ts` : instancier `bun:sqlite` + `drizzle()`.
-- [ ] Créer `drizzle.config.ts` (dialect `sqlite`, schéma `src/lib/server/db/schema.ts`, migrations `drizzle/`).
-- [ ] Activer `PRAGMA foreign_keys = ON` et `PRAGMA journal_mode = WAL` au démarrage.
+- [x] `drizzle-orm` (runtime) + `drizzle-kit` (dev) installés. `@types/bun` ajouté pour la résolution TS du builtin `bun:sqlite`.
+- [x] `src/lib/server/db/client.ts` créé : instancie `bun:sqlite` (création auto de `data/`), pose les pragmas, expose `db` (Drizzle) et `sqlite` (handle brut). Lit `process.env.DATABASE_URL` pour rester importable depuis des scripts standalones.
+- [x] `drizzle.config.ts` créé (dialect `sqlite`, schéma `src/lib/server/db/schema.ts`, migrations dans `./drizzle/`, `strict + verbose`). `schema.ts` est un placeholder vide en attendant 1.2.
+- [x] `PRAGMA journal_mode = WAL` + `PRAGMA foreign_keys = ON` activés au démarrage. Smoke test sous Bun confirmé (`journal_mode=wal`, `foreign_keys=1`, `SELECT 1` OK, instance Drizzle valide).
+- [x] **Bonus** : scripts `dev`/`build`/`preview` passés à `bun --bun vite ...` pour que `bun:sqlite` soit disponible dans le runtime SvelteKit. Scripts `db:generate` / `db:migrate` / `db:studio` exposés. `/drizzle/` ajouté à `.prettierignore` (géré par drizzle-kit).
 
 ### 1.2 Schéma Drizzle (`src/lib/server/db/schema.ts`)
 
