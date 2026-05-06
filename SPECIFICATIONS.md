@@ -7,6 +7,7 @@
 ## 1. Vue d'ensemble
 
 **Budget** permet à un utilisateur de :
+
 - Suivre ses revenus et dépenses sur un ou plusieurs comptes.
 - Catégoriser automatiquement chaque transaction dans une **enveloppe** (Nécessités / Envies / Investissements) et une **sous-catégorie**.
 - Visualiser en temps réel la conformité de son budget par rapport à la répartition cible (par défaut 50/30/20).
@@ -23,13 +24,14 @@ La langue par défaut est le **français**, la devise par défaut est l'**euro (
 
 Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est paramétrable :
 
-| Enveloppe | Ratio par défaut | Couleur | Description |
-|---|---|---|---|
-| **Nécessités** | 50 % | Vert | Dépenses incompressibles |
-| **Envies** | 30 % | Orange | Dépenses de confort / loisir |
-| **Investissements** | 20 % | Bleu | Épargne et placements |
+| Enveloppe           | Ratio par défaut | Couleur | Description                  |
+| ------------------- | ---------------- | ------- | ---------------------------- |
+| **Nécessités**      | 50 %             | Vert    | Dépenses incompressibles     |
+| **Envies**          | 30 %             | Orange  | Dépenses de confort / loisir |
+| **Investissements** | 20 %             | Bleu    | Épargne et placements        |
 
 **Contraintes :**
+
 - La somme des trois ratios doit toujours faire **100 %**.
 - Les ratios sont modifiables dans les réglages (Tweaks).
 
@@ -38,6 +40,7 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 À la création du compte utilisateur, chaque enveloppe est pré-remplie :
 
 **Nécessités**
+
 - Logement
 - Transports
 - Alimentation et boissons
@@ -48,11 +51,13 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 - Scolarité
 
 **Envies**
+
 - Abonnements
 - Sorties et Restaurants
 - Shopping
 
 **Investissements**
+
 - Actions
 - Obligations
 - Immobilier
@@ -60,6 +65,7 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 - Crypto
 
 **Règles :**
+
 - L'utilisateur peut **ajouter** une sous-catégorie à n'importe quelle enveloppe.
 - L'utilisateur peut **supprimer** une sous-catégorie. Les transactions qui y étaient rattachées sont reclassées en **« Non catégorisé »** (catégorie virtuelle, présente dans chaque enveloppe, ni supprimable ni renommable).
 - Les enveloppes elles-mêmes ne sont **pas** supprimables ni renommables (structure fixe imposée par la méthode).
@@ -67,10 +73,12 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 ### 2.3 Comptes
 
 À la création du compte utilisateur, deux comptes existent par défaut :
+
 - **Compte courant** (type : `checking`)
 - **Épargne** (type : `savings`)
 
 **Règles :**
+
 - L'utilisateur peut **ajouter** un compte (libellé, solde initial, type).
 - L'utilisateur peut **supprimer** un compte (avec confirmation si transactions associées).
 - L'utilisateur peut **renommer** un compte.
@@ -80,13 +88,14 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 
 Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 
-| Nature | Effet |
-|---|---|
-| **Dépense** (`expense`) | Débite un compte, attribuée à une enveloppe + sous-catégorie |
-| **Revenu** (`income`) | Crédite un compte, sans enveloppe. Peut porter une **catégorie de revenu** (ex. `salary`, `freelance`, `autre`) |
+| Nature                     | Effet                                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dépense** (`expense`)    | Débite un compte, attribuée à une enveloppe + sous-catégorie                                                                          |
+| **Revenu** (`income`)      | Crédite un compte, sans enveloppe. Peut porter une **catégorie de revenu** (ex. `salary`, `freelance`, `autre`)                       |
 | **Transfert** (`transfer`) | Débite le compte source et crédite le compte cible. Peut être attribué à une enveloppe (ex. virement vers Livret A → Investissements) |
 
 **Champs d'une transaction :**
+
 - `id` (généré)
 - `date` (ISO `YYYY-MM-DD`)
 - `merchant` (libellé du commerçant ou de la description)
@@ -104,6 +113,7 @@ Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 Modèle pour automatiser les transactions répétitives.
 
 **Champs :**
+
 - `id`, `merchant`, `amount`, `account`
 - `frequency` : `weekly` | `monthly` | `yearly`
 - `dayOfMonth` (pour `monthly`)
@@ -114,6 +124,7 @@ Modèle pour automatiser les transactions répétitives.
 - `active` : activable/désactivable sans suppression
 
 **Comportement :**
+
 - À la date prévue, génère automatiquement une transaction et reporte `nextDate` à la prochaine occurrence.
 - Désactiver suspend les déclenchements futurs sans supprimer les historiques.
 
@@ -177,12 +188,14 @@ Aperçu mensuel :
 ### 3.6 Modales
 
 **AddTxModal** — Ajouter une transaction
+
 - Onglets : Dépense / Transfert / Revenu.
 - Champs adaptatifs selon l'onglet (montant, libellé, depuis/vers, enveloppe, catégorie, compte, date).
 - Toggle « Paiement récurrent » → sélecteur de fréquence.
 - Boutons : Annuler / Ajouter (label change selon le mode).
 
 **AccountsModal** — Gérer les comptes
+
 - Liste éditable : libellé, solde, suppression.
 - Bouton « Ajouter un compte ».
 - Boutons : Annuler / Enregistrer.
@@ -253,16 +266,16 @@ La maquette actuelle utilise React 18 via UMD + Babel standalone (prototype navi
 
 ### 6.1 Choix retenus
 
-| Couche | Choix | Rôle |
-|---|---|---|
-| **Framework full-stack** | **SvelteKit** | UI + endpoints serveur dans un seul process (`+page.svelte`, `+page.server.ts`, `+server.ts`, *form actions*) |
-| **Base de données** | **SQLite** via **`bun:sqlite`** | Fichier local, accès synchrone natif au runtime |
-| **ORM / requêtes** | **Drizzle ORM** | Schéma typé, migrations (`drizzle-kit`), requêtes SQL-like en TS |
-| **Authentification** | **better-auth** | Email + mot de passe uniquement. Sessions persistées en SQLite. Modules OAuth/2FA non activés. |
-| **Langage** | **TypeScript strict** | Types partagés entre client et serveur via les `load`/`actions` de SvelteKit |
-| **Runtime** | **Bun** | Exécution serveur (Vite dev + prod via `@sveltejs/adapter-bun` ou `adapter-node` exécuté avec Bun) |
-| **Gestionnaire de paquets** | **pnpm** | Aucune commande `npm` / `yarn` / `bun install` dans le projet |
-| **Build / dev** | **Vite** (intégré à SvelteKit) | — |
+| Couche                      | Choix                           | Rôle                                                                                                          |
+| --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Framework full-stack**    | **SvelteKit**                   | UI + endpoints serveur dans un seul process (`+page.svelte`, `+page.server.ts`, `+server.ts`, _form actions_) |
+| **Base de données**         | **SQLite** via **`bun:sqlite`** | Fichier local, accès synchrone natif au runtime                                                               |
+| **ORM / requêtes**          | **Drizzle ORM**                 | Schéma typé, migrations (`drizzle-kit`), requêtes SQL-like en TS                                              |
+| **Authentification**        | **better-auth**                 | Email + mot de passe uniquement. Sessions persistées en SQLite. Modules OAuth/2FA non activés.                |
+| **Langage**                 | **TypeScript strict**           | Types partagés entre client et serveur via les `load`/`actions` de SvelteKit                                  |
+| **Runtime**                 | **Bun**                         | Exécution serveur (Vite dev + prod via `@sveltejs/adapter-bun` ou `adapter-node` exécuté avec Bun)            |
+| **Gestionnaire de paquets** | **pnpm**                        | Aucune commande `npm` / `yarn` / `bun install` dans le projet                                                 |
+| **Build / dev**             | **Vite** (intégré à SvelteKit)  | —                                                                                                             |
 
 ### 6.2 Tests
 

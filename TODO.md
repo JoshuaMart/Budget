@@ -7,6 +7,7 @@
 ## 0. Mise en place du projet
 
 ### 0.1 Tooling de base
+
 - [x] Installer Bun (`curl -fsSL https://bun.sh/install | bash`) et vérifier `bun --version`.
 - [x] Installer pnpm (`npm i -g pnpm` ou via Corepack).
 - [x] Initialiser le projet SvelteKit via `pnpm dlx sv create . --template minimal --types ts --add prettier --add eslint --add vitest=usages:unit --add playwright --install pnpm`.
@@ -16,12 +17,14 @@
 - [x] `pnpm dev` démarre Vite, la page d'accueil SvelteKit répond en HTTP 200.
 
 ### 0.2 Configuration SvelteKit
-- [ ] Activer `@sveltejs/adapter-bun` dans `svelte.config.js`.
-- [ ] Activer le mode strict TypeScript (`"strict": true`, `"noUncheckedIndexedAccess": true` dans `tsconfig.json`).
-- [ ] Configurer `$lib` aliases pour `db/`, `server/`, `domain/`, `ui/`.
-- [ ] Configurer Prettier + ESLint avec `eslint-plugin-svelte` et règle d'import order.
+
+- [x] Adapter Bun activé dans `svelte.config.js` via `svelte-adapter-bun` (l'officiel `@sveltejs/adapter-bun` n'existe pas — `svelte-adapter-bun` est le package communautaire de référence). `@sveltejs/adapter-auto` retiré.
+- [x] TypeScript strict + `noUncheckedIndexedAccess: true` dans `tsconfig.json` (`pnpm check` passe).
+- [x] Dossiers `src/lib/{db,server,domain,ui}` créés avec `.gitkeep` — accessibles via `$lib/db/...`, `$lib/server/...`, etc. (résolution `$lib` par défaut de SvelteKit).
+- [x] ESLint + `eslint-plugin-svelte` déjà actifs ; ajout de `eslint-plugin-simple-import-sort` (règles `simple-import-sort/imports` + `/exports`). Prettier + `.prettierignore` étendu (`Maquette/`, `.claude/`, `.svelte-kit/`, `build/`).
 
 ### 0.3 Hygiène du dépôt
+
 - [ ] Ajouter `.gitignore` (node_modules, `.svelte-kit`, `build`, `*.db`, `.env*`).
 - [ ] Créer `.env.example` (variables `DATABASE_URL`, `BETTER_AUTH_SECRET`, `ORIGIN`).
 - [ ] Ajouter `README.md` minimal (commandes dev/build/test).
@@ -33,12 +36,14 @@
 ## 1. Base de données (SQLite + Drizzle)
 
 ### 1.1 Setup
+
 - [ ] `pnpm add drizzle-orm` et `pnpm add -D drizzle-kit`.
 - [ ] Créer `src/lib/server/db/client.ts` : instancier `bun:sqlite` + `drizzle()`.
 - [ ] Créer `drizzle.config.ts` (dialect `sqlite`, schéma `src/lib/server/db/schema.ts`, migrations `drizzle/`).
 - [ ] Activer `PRAGMA foreign_keys = ON` et `PRAGMA journal_mode = WAL` au démarrage.
 
 ### 1.2 Schéma Drizzle (`src/lib/server/db/schema.ts`)
+
 - [ ] Tables `user`, `session`, `account_auth`, `verification` requises par better-auth.
 - [ ] Table `account` (comptes bancaires) : `id`, `userId`, `label`, `initialBalance`, `type`, `createdAt`.
 - [ ] Table `envelope` : `id`, `userId`, `key` (`necessities`|`wants`|`investments`), `label`, `ratio`, `color`, `position`. Unique (`userId`, `key`).
@@ -50,6 +55,7 @@
 - [ ] Décision : tous les montants sont stockés en **centimes (entier)** pour éviter les flottants.
 
 ### 1.3 Migrations + seed
+
 - [ ] Première migration : `pnpm drizzle-kit generate` + commit du SQL généré.
 - [ ] Script `pnpm db:migrate` qui applique les migrations au démarrage.
 - [ ] Script `pnpm db:seed` qui crée un utilisateur de démo + données de la maquette.
@@ -60,6 +66,7 @@
 ## 2. Authentification (better-auth)
 
 ### 2.1 Setup
+
 - [ ] `pnpm add better-auth`.
 - [ ] Créer `src/lib/server/auth.ts` : config `betterAuth({ database, emailAndPassword: { enabled: true } })`.
 - [ ] Connecter l'adapter Drizzle de better-auth au schéma SQLite.
@@ -67,6 +74,7 @@
 - [ ] Définir `BETTER_AUTH_SECRET` dans `.env` (32+ octets aléatoires).
 
 ### 2.2 Routes & UI
+
 - [ ] Endpoint catch-all `src/routes/api/auth/[...auth]/+server.ts` qui délègue à better-auth.
 - [ ] Hook `src/hooks.server.ts` : injecte `event.locals.user` et `event.locals.session` à partir du cookie de session.
 - [ ] Page `/login` (form action, errors visibles).
@@ -75,6 +83,7 @@
 - [ ] Garde de routes : middleware qui redirige vers `/login` si pas de session pour toutes les routes hors `/login`, `/register`, `/api/auth/*`.
 
 ### 2.3 Sécurité
+
 - [ ] Cookies `httpOnly`, `secure` en prod, `sameSite=lax`.
 - [ ] Rate-limit basique sur `/login` (ex. 5 essais / 10 min / IP).
 - [ ] Validation des entrées avec **Zod** (`pnpm add zod`).
@@ -86,6 +95,7 @@
 > But : isoler les calculs de budget dans des fonctions pures, faciles à tester unitairement.
 
 ### 3.1 Modules `src/lib/domain/`
+
 - [ ] `money.ts` : conversions cents ↔ euros, formatage `Intl.NumberFormat('fr-FR', { currency: 'EUR' })`.
 - [ ] `dates.ts` : helpers mois courant, début/fin de mois, libellés FR (`Janvier`, `Lun 12 Mai`…).
 - [ ] `budget.ts` :
@@ -103,6 +113,7 @@
 - [ ] `compliance.ts` : score de conformité 50/30/20 (formule à arrêter — voir §7).
 
 ### 3.2 Tests unitaires (Vitest)
+
 - [ ] Test `money` (arrondis, format FR).
 - [ ] Test `monthIncome` avec transactions multi-mois et incomes mixtes.
 - [ ] Test `envelopeBudget` quand income = 0.
@@ -116,6 +127,7 @@
 ## 4. Couche serveur (services + endpoints)
 
 ### 4.1 Services `src/lib/server/services/`
+
 - [ ] `accounts.service.ts` : CRUD comptes + recalcul du solde.
 - [ ] `envelopes.service.ts` : lecture des enveloppes + mise à jour des ratios (validation : somme = 100).
 - [ ] `categories.service.ts` : CRUD sous-catégories + reclassement vers « Non catégorisé » à la suppression.
@@ -124,6 +136,7 @@
 - [ ] `stats.service.ts` : agrégations (6 mois de tendance, top catégories du mois, donut).
 
 ### 4.2 Schémas Zod (`src/lib/server/schemas/`)
+
 - [ ] Schéma `transactionInput` (3 variantes : expense, transfer, income).
 - [ ] Schéma `recurringInput`.
 - [ ] Schéma `accountInput`.
@@ -131,6 +144,7 @@
 - [ ] Schéma `ratiosInput` (refine : somme = 100).
 
 ### 4.3 Cron / déclencheur de récurrents
+
 - [ ] Au démarrage du serveur : matérialiser les récurrents `active` dont `nextDate <= today` (rattrapage).
 - [ ] Hook quotidien (setInterval simple ou job Bun) qui rejoue le check à minuit.
 - [ ] Idempotence : ne pas créer deux fois la transaction d'un même `recurringId` pour la même `nextDate`.
@@ -140,6 +154,7 @@
 ## 5. UI — composants partagés
 
 ### 5.1 Design system
+
 - [ ] Porter `Maquette/styles.css` dans `src/app.css` + tokens (variables CSS) en `src/lib/ui/tokens.css`.
 - [ ] Composant `Icon.svelte` (porter `Maquette/icons.jsx`).
 - [ ] Composants atomiques : `Button.svelte`, `Input.svelte`, `Select.svelte`, `Switch.svelte`, `Modal.svelte`, `Tabs.svelte`, `Pill.svelte`.
@@ -147,6 +162,7 @@
 - [ ] Composant `EnvelopeTag.svelte`.
 
 ### 5.2 Layout
+
 - [ ] `src/routes/+layout.svelte` : sidebar + main, charge l'utilisateur depuis `locals`.
 - [ ] `src/routes/+layout.server.ts` : précharge comptes + enveloppes pour la sidebar.
 - [ ] `Sidebar.svelte` (port de `Maquette/sidebar.jsx`) : navigation + liste des comptes + total + bouton « modifier ».
@@ -156,6 +172,7 @@
 ## 6. Vues métier
 
 ### 6.1 Tableau de bord (`/`)
+
 - [ ] `+page.server.ts` : charge transactions du mois, comptes, enveloppes, ratios.
 - [ ] `Dashboard.svelte` : topbar (salutation, mois, navigation, bouton ajouter), 4 hero metrics, 3 cartes enveloppes.
 - [ ] `CategoriesGrid.svelte` : onglets par enveloppe + grille de tuiles.
@@ -163,22 +180,26 @@
 - [ ] Navigation `<` / `>` mois (URL param `?m=YYYY-MM`).
 
 ### 6.2 Transactions (`/transactions`)
+
 - [ ] `+page.server.ts` : recherche + filtre enveloppe en query params, pagination si nécessaire.
 - [ ] `Transactions.svelte` : toolbar (recherche, filtres pills) + liste groupée par jour.
 - [ ] Form action : suppression d'une transaction (avec confirmation).
 - [ ] Bouton « Ajouter » → ouvre `AddTxModal`.
 
 ### 6.3 Récurrents (`/recurring`)
+
 - [ ] `+page.server.ts` : charge récurrents + agrège par enveloppe.
 - [ ] `Recurring.svelte` : résumé + bloc solde net mensuel + liste.
 - [ ] Form action : `toggleRecurring`, `removeRecurring`.
 
 ### 6.4 Statistiques (`/stats`)
+
 - [ ] `+page.server.ts` : calcule la tendance 6 mois, top catégories, donut.
 - [ ] `Stats.svelte` : 4 hero + 2 graphiques (barres empilées + donut SVG) + top catégories.
 - [ ] Donut : porter le SVG de la maquette en composant Svelte.
 
 ### 6.5 Modales
+
 - [ ] `AddTxModal.svelte` (porter `Maquette/modals.jsx` AddTxModal). 3 onglets, validation Zod côté serveur via form action.
 - [ ] `AccountsModal.svelte` (porter AccountsModal). Édition liste, ajout, suppression, sauvegarde via form action.
 - [ ] Comportement : fermeture sur backdrop, échappement clavier, focus trap.
@@ -197,11 +218,13 @@
 ## 8. Tests d'intégration & E2E
 
 ### 8.1 Vitest (intégration server)
+
 - [ ] Test `transactions.service` avec une DB SQLite en mémoire.
 - [ ] Test du flux création utilisateur → `initUserData` → vérifier 3 enveloppes + catégories + 2 comptes.
 - [ ] Test suppression catégorie → reclassement vers « Non catégorisé ».
 
 ### 8.2 Playwright (E2E)
+
 - [ ] Scénario : inscription → connexion → ajouter une dépense → vérifier impact sur dashboard.
 - [ ] Scénario : créer un récurrent → vérifier prochaine date affichée → désactiver.
 - [ ] Scénario : effectuer un transfert entre comptes → vérifier soldes des deux comptes.
@@ -212,6 +235,7 @@
 ## 9. Polish & déploiement
 
 ### 9.1 Polish UI
+
 - [ ] Vérifier responsive (mobile / tablette / desktop).
 - [ ] États vides (aucune transaction, aucun récurrent, aucun compte).
 - [ ] États d'erreur (form invalide, conflit serveur).
@@ -219,11 +243,13 @@
 - [ ] Accessibilité : focus visible, labels ARIA sur icônes/toggles, navigation clavier complète.
 
 ### 9.2 Performance
+
 - [ ] Vérifier le bundle JS (objectif < 100 ko gzip pour la home).
 - [ ] Précharger les ressources critiques (`+layout.server.ts` pour la sidebar).
 - [ ] Cache HTTP sur les assets statiques.
 
 ### 9.3 Déploiement
+
 - [ ] `pnpm build` + `bun ./build/index.js` doit servir la prod en local.
 - [ ] Choisir une cible (VPS, Render, Fly.io, Railway…) compatible avec un disque persistant pour le fichier SQLite.
 - [ ] Backups automatiques du fichier SQLite (cron + copie hors-site).
@@ -231,6 +257,7 @@
 - [ ] Domaine + HTTPS (Caddy / Cloudflare devant).
 
 ### 9.4 Observabilité
+
 - [ ] Logs structurés (pino ou simple console JSON).
 - [ ] Alerte basique si le process meurt (healthcheck HTTP).
 
