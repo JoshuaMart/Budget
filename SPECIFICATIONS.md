@@ -61,7 +61,7 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 
 **Règles :**
 - L'utilisateur peut **ajouter** une sous-catégorie à n'importe quelle enveloppe.
-- L'utilisateur peut **supprimer** une sous-catégorie. Si elle est utilisée par des transactions existantes, le comportement attendu est : reclasser en « Non catégorisé » (à confirmer lors de l'implémentation).
+- L'utilisateur peut **supprimer** une sous-catégorie. Les transactions qui y étaient rattachées sont reclassées en **« Non catégorisé »** (catégorie virtuelle, présente dans chaque enveloppe, ni supprimable ni renommable).
 - Les enveloppes elles-mêmes ne sont **pas** supprimables ni renommables (structure fixe imposée par la méthode).
 
 ### 2.3 Comptes
@@ -83,7 +83,7 @@ Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 | Nature | Effet |
 |---|---|
 | **Dépense** (`expense`) | Débite un compte, attribuée à une enveloppe + sous-catégorie |
-| **Revenu** (`income`) | Crédite un compte, sans enveloppe |
+| **Revenu** (`income`) | Crédite un compte, sans enveloppe. Peut porter une **catégorie de revenu** (ex. `salary`, `freelance`, `autre`) |
 | **Transfert** (`transfer`) | Débite le compte source et crédite le compte cible. Peut être attribué à une enveloppe (ex. virement vers Livret A → Investissements) |
 
 **Champs d'une transaction :**
@@ -95,6 +95,7 @@ Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 - `toAccount` (compte cible, transferts uniquement)
 - `envelope` (`necessities` | `wants` | `investments` | `null` pour les revenus)
 - `category` (id de la sous-catégorie, `null` pour les revenus)
+- `incomeCategory` (revenus uniquement : `salary` | `freelance` | `autre` | …, extensible par l'utilisateur)
 - `kind` (`expense` | `income` | `transfer`, défaut `expense`)
 - `recurringId` (lien vers un paiement récurrent, optionnel)
 
@@ -128,7 +129,7 @@ L'application repose sur une **sidebar** de navigation persistante et une zone p
 - Navigation : Tableau de bord · Transactions · Récurrents · Statistiques.
 - Section « Comptes » : liste de chaque compte avec son solde courant + bouton « modifier » (ouvre la modale Comptes).
 - Ligne « Total tous comptes ».
-- Pied : rappel de la méthode active (`50/30/20`) avec lien vers les Tweaks.
+- Pied : rappel de la méthode active (`50/30/20`).
 
 ### 3.2 Tableau de bord
 
@@ -163,7 +164,7 @@ Aperçu mensuel :
 
 - Topbar : nombre d'actifs + total des charges fixes mensuelles.
 - Bloc résumé : engagements mensuels par enveloppe + total.
-- Bloc « Solde net mensuel » : revenus récurrents − charges fixes.
+- Bloc « Solde net mensuel » : `salaire mensuel − charges fixes` (le salaire est identifié comme un revenu récurrent dont `incomeCategory == "salary"`).
 - Liste : tous les récurrents (triés par montant décroissant), avec libellé, fréquence, prochaine date, compte, montant signé, **toggle actif/inactif**.
 
 ### 3.5 Statistiques
@@ -186,20 +187,13 @@ Aperçu mensuel :
 - Bouton « Ajouter un compte ».
 - Boutons : Annuler / Enregistrer.
 
-### 3.7 Panneau de réglages (Tweaks)
-
-Réglages globaux :
-- `ratioNec` / `ratioWant` / `ratioInv` : ratios des trois enveloppes (somme = 100).
-- `monthlyIncome` : revenu mensuel de référence pour le calcul des budgets.
-- `density` : `comfortable` | `compact` (densité visuelle).
-- `envelopeViz` : `bars` | autre (style de visualisation des enveloppes).
-
 ---
 
 ## 4. Règles de calcul
 
-- **Budget d'une enveloppe** = `monthlyIncome × ratio / 100`.
-- **Dépensé d'une enveloppe (mois courant)** = somme des `|amount|` des transactions du mois où `envelope == enveloppe.id` et `income != true`.
+- **Revenu du mois (`monthlyIncome`)** = somme des transactions `kind == "income"` du mois courant. Le revenu est **variable d'un mois à l'autre** ; il n'y a pas de revenu de référence figé.
+- **Budget d'une enveloppe** = `monthlyIncome × ratio / 100` (recalculé dès qu'un revenu est ajouté/modifié sur le mois).
+- **Dépensé d'une enveloppe (mois courant)** = somme des `|amount|` des transactions du mois où `envelope == enveloppe.id` et `kind != "income"`.
 - **Reste d'une enveloppe** = `budget − dépensé`. Si négatif → dépassement (UI rouge).
 - **Reste à allouer** = `monthlyIncome − totalSpent`.
 - **Solde courant d'un compte** = `initial + Σ(transactions du compte)` (les transferts débitent le compte source et créditent le compte cible).
@@ -215,8 +209,6 @@ Réglages globaux :
 User
   id, email, name
   ratios { necessities, wants, investments }   // somme = 100
-  monthlyIncome
-  preferences { density, envelopeViz, ... }
 
 Envelope (fixe : 3 enveloppes, non supprimables)
   id (necessities|wants|investments)
@@ -235,6 +227,7 @@ Transaction
   id, date, merchant, amount
   account, toAccount?
   envelope?, category?
+  incomeCategory?            // revenus uniquement (salary|freelance|autre|…)
   kind (expense|income|transfer)
   recurringId?
 
@@ -248,43 +241,49 @@ Recurring
 
 ### 5.2 Initialisation à la création d'un utilisateur
 
-1. Créer les 3 enveloppes avec les ratios par défaut (50/30/20) et les sous-catégories par défaut (cf. §2.2).
+1. Créer les 3 enveloppes avec les ratios par défaut (50/30/20) et les sous-catégories par défaut (cf. §2.2), plus la catégorie virtuelle « Non catégorisé » dans chacune.
 2. Créer 2 comptes : « Compte courant » (checking) et « Épargne » (savings), solde initial 0.
-3. `monthlyIncome` à 0 jusqu'à la première saisie utilisateur.
+3. Aucun revenu n'est saisi : tant qu'aucune transaction `income` n'existe sur le mois, les budgets d'enveloppes valent 0.
 
 ---
 
-## 6. Stack technique (à définir)
+## 6. Stack technique
 
-La maquette actuelle utilise React 18 via UMD + Babel standalone (prototype navigateur uniquement, état en mémoire).
+La maquette actuelle utilise React 18 via UMD + Babel standalone (prototype navigateur uniquement, état en mémoire) — elle sert de **référence visuelle et fonctionnelle uniquement**, le code de production est réécrit.
 
-Pour la version applicative à construire, points à arbitrer :
+### 6.1 Choix retenus
 
-- **Framework UI** : React + Vite (recommandé, continuité avec la maquette).
-- **Persistance** : à choisir — localStorage / IndexedDB pour une app 100 % client, ou backend (Supabase, Firebase, API custom) si multi-device.
-- **Authentification** : à définir (email/password, OAuth…).
-- **Devise / i18n** : EUR + FR par défaut, extensible plus tard.
-- **Tests** : Vitest + Testing Library pour les composants, tests d'intégration sur les calculs de budget.
+| Couche | Choix | Rôle |
+|---|---|---|
+| **Framework full-stack** | **SvelteKit** | UI + endpoints serveur dans un seul process (`+page.svelte`, `+page.server.ts`, `+server.ts`, *form actions*) |
+| **Base de données** | **SQLite** via **`bun:sqlite`** | Fichier local, accès synchrone natif au runtime |
+| **ORM / requêtes** | **Drizzle ORM** | Schéma typé, migrations (`drizzle-kit`), requêtes SQL-like en TS |
+| **Authentification** | **better-auth** | Email + mot de passe uniquement. Sessions persistées en SQLite. Modules OAuth/2FA non activés. |
+| **Langage** | **TypeScript strict** | Types partagés entre client et serveur via les `load`/`actions` de SvelteKit |
+| **Runtime** | **Bun** | Exécution serveur (Vite dev + prod via `@sveltejs/adapter-bun` ou `adapter-node` exécuté avec Bun) |
+| **Gestionnaire de paquets** | **pnpm** | Aucune commande `npm` / `yarn` / `bun install` dans le projet |
+| **Build / dev** | **Vite** (intégré à SvelteKit) | — |
+
+### 6.2 Tests
+
+- **Vitest** : tests unitaires sur les calculs de budget (purs, sans dépendance UI).
+- **Playwright** : tests end-to-end sur les flux critiques (création de transaction, déclenchement d'un récurrent, calcul du reste à allouer).
+
+### 6.3 Internationalisation
+
+- Langue : **FR** uniquement en V1.
+- Devise : **EUR** uniquement en V1, formatage via `Intl.NumberFormat`.
+
+### 6.4 Déploiement
+
+- Cible : un process Bun + un fichier SQLite à côté.
+- Adapter SvelteKit : **`@sveltejs/adapter-bun`** privilégié. `adapter-node` exécuté sous Bun reste un fallback si besoin. Les adapters serverless (Vercel/CF) ne conviennent pas à un SQLite fichier.
 
 ---
 
-## 7. Hors périmètre (V1)
-
-À écarter explicitement de la première version pour rester focus :
-
-- Import bancaire automatique (CSV / Open Banking).
-- Multi-devises.
-- Partage / comptes joints.
-- Catégorisation automatique par règle / IA.
-- Notifications push / e-mail.
-- Mode mobile natif (responsive web suffit).
-
----
-
-## 8. Glossaire
+## 7. Glossaire
 
 - **Enveloppe** : l'une des trois grandes catégories budgétaires (Nécessités, Envies, Investissements).
 - **Sous-catégorie** (ou catégorie) : subdivision d'une enveloppe (ex. Logement, Transports…).
 - **Récurrent** : modèle de transaction qui se déclenche périodiquement.
 - **DCA** : Dollar Cost Averaging — investissement programmé.
-- **Tweak** : réglage utilisateur global de l'application.
