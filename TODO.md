@@ -25,11 +25,11 @@
 
 ### 0.3 Hygiène du dépôt
 
-- [ ] Ajouter `.gitignore` (node_modules, `.svelte-kit`, `build`, `*.db`, `.env*`).
-- [ ] Créer `.env.example` (variables `DATABASE_URL`, `BETTER_AUTH_SECRET`, `ORIGIN`).
-- [ ] Ajouter `README.md` minimal (commandes dev/build/test).
-- [ ] Configurer Husky + lint-staged (Prettier + ESLint au pre-commit).
-- [ ] Mettre en place GitHub Actions : lint + test + build sur PR.
+- [x] `.gitignore` enrichi (SQLite : `/data/`, `*.db`, `*.sqlite*`, `*-journal/wal/shm`). Le `.gitignore` scaffoldé couvrait déjà `node_modules`, `.svelte-kit`, `build`, `.env*`.
+- [x] `.env.example` créé (`ORIGIN`, `DATABASE_URL`, `BETTER_AUTH_SECRET`).
+- [x] `README.md` réécrit (Budget-spécifique, table des commandes pnpm, lien vers SPECIFICATIONS/TODO).
+- [x] Husky 9 + lint-staged installés. `.husky/pre-commit` lance `pnpm exec lint-staged` ; config `lint-staged` dans `package.json` (eslint --fix + prettier --write sur JS/TS/Svelte, prettier seul sur md/json/yml/css/html). Script `prepare` étendu pour brancher husky.
+- [x] GitHub Actions `.github/workflows/ci.yml` : checkout → setup-bun → setup-pnpm → setup-node (cache pnpm) → `pnpm install --frozen-lockfile` → `check` → `lint` → `test:unit` → `build`.
 
 ---
 

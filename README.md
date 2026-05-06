@@ -1,42 +1,36 @@
-# sv
+# Budget
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Application de suivi de dépenses et de budgets personnels basée sur la méthode **50/30/20**.
 
-## Creating a project
+Voir [`SPECIFICATIONS.md`](./SPECIFICATIONS.md) pour les specs fonctionnelles et [`TODO.md`](./TODO.md) pour la roadmap d'implémentation.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Stack
 
-```sh
-# create a new project
-npx sv create my-app
-```
+SvelteKit · Bun (runtime) · SQLite + Drizzle ORM · better-auth · TypeScript strict · pnpm.
 
-To recreate this project with the same configuration:
+## Prérequis
 
-```sh
-# recreate this project
-pnpm dlx sv@0.15.2 create --template minimal --types ts --add prettier eslint vitest="usages:unit" playwright --no-download-check --install pnpm .
-```
+- [Bun](https://bun.sh) ≥ 1.3
+- Node.js ≥ 20 (pour les outils du toolchain)
+- [pnpm](https://pnpm.io) ≥ 10
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Setup
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+cp .env.example .env   # puis remplir BETTER_AUTH_SECRET
 ```
 
-## Building
+## Commandes
 
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+| Commande         | Effet                                                    |
+| ---------------- | -------------------------------------------------------- |
+| `pnpm dev`       | Lance le serveur de dev (Vite) sur http://localhost:5173 |
+| `pnpm build`     | Build de production (`build/` exécutable avec Bun)       |
+| `pnpm preview`   | Sert le build local                                      |
+| `pnpm check`     | `svelte-check` + TypeScript strict                       |
+| `pnpm lint`      | Prettier --check + ESLint                                |
+| `pnpm format`    | Prettier --write                                         |
+| `pnpm test:unit` | Tests unitaires Vitest                                   |
+| `pnpm test:e2e`  | Tests E2E Playwright                                     |
+| `pnpm test`      | Suite complète                                           |
