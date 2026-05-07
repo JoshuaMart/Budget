@@ -36,7 +36,7 @@ textarea {
 
 .app {
 	display: grid;
-	grid-template-columns: 260px 1fr;
+	grid-template-columns: 260px minmax(0, 1fr);
 	min-height: 100vh;
 }
 
@@ -1692,5 +1692,172 @@ textarea {
 	}
 	.login-right {
 		display: none;
+	}
+}
+
+/* ============================================================
+ * Responsive — tablette (≤ 1024px)
+ * ============================================================ */
+@media (max-width: 1024px) {
+	.main {
+		padding: 24px 24px 60px;
+	}
+	.hero-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.envelopes-row {
+		grid-template-columns: 1fr;
+	}
+	.stats-grid {
+		grid-template-columns: 1fr;
+	}
+	.recurring-grid {
+		grid-template-columns: 1fr;
+	}
+	.cat-grid {
+		grid-template-columns: repeat(3, 1fr);
+	}
+	.envelope-radio {
+		grid-template-columns: 1fr;
+	}
+	/* Filters wrap onto a second line instead of forcing horizontal scroll. */
+	.tx-toolbar {
+		flex-wrap: wrap;
+	}
+	.tx-search {
+		flex: 1 1 100%;
+	}
+	/* Transactions list: hide the envelope tag and account columns. */
+	.tx-row {
+		grid-template-columns: 36px 1fr 100px;
+		gap: 10px;
+		padding: 12px 18px;
+	}
+	.tx-row > div:nth-child(3),
+	.tx-row > div:nth-child(4) {
+		display: none;
+	}
+	/* Recurring rows: keep merchant + amount + toggle, drop the rest. */
+	.rec-row {
+		grid-template-columns: 32px 1fr auto auto;
+		gap: 10px;
+		padding: 12px 16px;
+	}
+	.rec-row .rec-frequency,
+	.rec-row .rec-next,
+	.rec-row > .rec-meta:nth-of-type(2) {
+		display: none;
+	}
+	/* Donut + legend stack vertically (centered) below desktop sizes. */
+	.donut-wrap {
+		flex-direction: column;
+		gap: 18px;
+	}
+	.donut-legend {
+		width: 100%;
+	}
+}
+
+/* ============================================================
+ * Responsive — mobile (≤ 640px)
+ * ============================================================ */
+@media (max-width: 640px) {
+	html,
+	body {
+		overflow-x: hidden;
+	}
+	.app {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto 1fr;
+	}
+	/* Sidebar collapses to a horizontal top strip with the nav only. */
+	.sidebar {
+		position: sticky;
+		top: 0;
+		height: auto;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 14px;
+		border-right: none;
+		border-bottom: 1px solid var(--border);
+		overflow-x: auto;
+		z-index: 10;
+		background: var(--bg);
+	}
+	.sidebar .brand {
+		margin-bottom: 0;
+		flex-shrink: 0;
+	}
+	.sidebar .nav {
+		flex-direction: row;
+		gap: 4px;
+		flex-shrink: 0;
+	}
+	.sidebar .nav-item {
+		padding: 8px 10px;
+		white-space: nowrap;
+		font-size: 13px;
+	}
+	/* Hide the heavier sections; accounts remain accessible via the modal. */
+	.sidebar > div:not(.brand):not(.nav),
+	.sidebar-foot {
+		display: none;
+	}
+
+	.main {
+		padding: 20px 14px 60px;
+	}
+	.topbar {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+		margin-bottom: 18px;
+	}
+	.topbar h1 {
+		font-size: 22px;
+	}
+	.topbar-actions {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.month-switcher {
+		flex: 1;
+		justify-content: space-between;
+	}
+	.month-switcher .month-label {
+		min-width: 0;
+		flex: 1;
+	}
+	/* Bars chart row gets tighter labels on the smallest screens. */
+	.bars-row {
+		grid-template-columns: 28px 1fr 60px;
+		gap: 8px;
+	}
+
+	.hero-grid {
+		grid-template-columns: 1fr;
+	}
+	.cat-grid {
+		grid-template-columns: 1fr;
+	}
+
+	/* Toolbar wraps: search takes full width, filters scroll horizontally. */
+	.tx-toolbar {
+		flex-wrap: wrap;
+	}
+	.tx-search {
+		width: 100%;
+	}
+	.tx-filter-pill {
+		flex-shrink: 0;
+	}
+
+	/* Modals: full-width with breathing room; allow vertical scroll. */
+	.modal {
+		width: calc(100% - 24px) !important;
+		max-width: none;
+		max-height: calc(100vh - 24px);
+		overflow-y: auto;
 	}
 }

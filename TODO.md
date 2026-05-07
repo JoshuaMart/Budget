@@ -250,7 +250,10 @@ End-to-end vérifié : login démo → dashboard montre « Bonjour Camille » / 
 
 ### 9.1 Polish UI
 
-- [ ] Vérifier responsive (mobile / tablette / desktop).
+- [x] Audit responsive sur 3 viewports × 5 pages (mobile 375 / tablette 800 / desktop 1440) via Playwright. **15/15 sans overflow horizontal**. Captures dans `/tmp/budget-screens/`.
+  - **Dans `app.css`** : block `@media (max-width: 1024px)` (hero-grid en 2 col, envelopes/stats/recurring grids en 1 col, cat-grid en 3 col, envelope-radio en 1 col, tx-toolbar wrap, tx-row réduit aux 3 colonnes essentielles, rec-row simplifié, donut-wrap empilé) + block `@media (max-width: 640px)` (sidebar transformée en barre horizontale sticky avec nav scrollable, hero/cat-grid stackées, topbar en colonne, modales pleine largeur, `overflow-x: hidden` au niveau body).
+  - **Bug clé corrigé** : `.app { grid-template-columns: 260px 1fr }` permettait au contenu de pousser la track ; remplacé par `minmax(0, 1fr)`.
+  - **Inline `style="grid-template-columns: repeat(4, 1fr)"`** retiré de `/stats` (il écrasait le media query).
 - [ ] États vides (aucune transaction, aucun récurrent, aucun compte).
 - [ ] États d'erreur (form invalide, conflit serveur).
 - [ ] États de chargement (skeleton sur le dashboard au premier load).

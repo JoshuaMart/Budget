@@ -62,7 +62,7 @@
 	</div>
 </div>
 
-<div class="hero-grid" style="grid-template-columns: repeat(4, 1fr);">
+<div class="hero-grid">
 	<div class="hero-card">
 		<div class="label">Dépensé en {(SHORT_MONTH_FR[data.ym.month] ?? '').toLowerCase()}</div>
 		<div class="value num"><Money cents={totalSpent} /></div>
