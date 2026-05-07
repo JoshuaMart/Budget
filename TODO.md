@@ -58,10 +58,11 @@
 
 ### 1.3 Migrations + seed
 
-- [ ] Première migration : `pnpm drizzle-kit generate` + commit du SQL généré.
-- [ ] Script `pnpm db:migrate` qui applique les migrations au démarrage.
-- [ ] Script `pnpm db:seed` qui crée un utilisateur de démo + données de la maquette.
-- [ ] Helper `initUserData(userId)` qui crée à l'inscription : 3 enveloppes par défaut, leurs sous-catégories, la catégorie virtuelle « Non catégorisé », 2 comptes (Compte courant + Épargne).
+- [x] Première migration générée et committée en 1.2 (`drizzle/0000_slippery_apocalypse.sql`).
+- [x] `src/hooks.server.ts` applique les migrations au boot du serveur SvelteKit (`drizzle-orm/bun-sqlite/migrator`, idempotent). Vérifié : `data/budget.db` créée + journal `__drizzle_migrations` rempli au premier hit HTTP.
+- [x] `src/lib/server/db/seed.ts` + script `pnpm db:seed` : crée le user `demo@budget.local`, appelle `initUserData`, insère **25 transactions** + **9 récurrents** portés depuis `Maquette/data.jsx` (montants en centimes, dates conservées, liens `recurringId` rétablis). Idempotent (drop + recreate).
+- [x] `src/lib/server/initUserData.ts` : helper transactionnel qui provisionne 3 enveloppes (50/30/20, couleurs OKLCH de la maquette), leurs sous-catégories par défaut, la catégorie virtuelle `Non catégorisé` (`isVirtual=true`, position 9999) dans chaque enveloppe, et les 2 comptes par défaut.
+- Validation end-to-end : migrate → seed → 25 tx, 9 rec, 16 catégories réelles, 3 virtuelles, 1 income tagué `salary`, 1 transfert, 7 tx liées à un récurrent. Re-seed → toujours 25 tx (pas de duplication).
 
 ---
 

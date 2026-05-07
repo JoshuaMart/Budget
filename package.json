@@ -19,6 +19,7 @@
 		"format": "prettier --write .",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun --bun src/lib/server/db/migrate.ts",
+		"db:seed": "bun --bun src/lib/server/db/seed.ts",
 		"db:studio": "drizzle-kit studio",
 		"test:unit": "vitest",
 		"test": "pnpm run test:unit -- --run && pnpm run test:e2e",
