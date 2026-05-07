@@ -44,7 +44,8 @@ Demo credentials (after `db:seed`): `demo@budget.local` / `Budget123!`
 - [Node.js](https://nodejs.org) ≥ 22 — toolchain
 - [pnpm](https://pnpm.io) ≥ 10 — package manager
 
-## Scripts
+<details>
+<summary><strong>All scripts</strong></summary>
 
 | Command            | What it does                                       |
 | ------------------ | -------------------------------------------------- |
@@ -61,6 +62,8 @@ Demo credentials (after `db:seed`): `demo@budget.local` / `Budget123!`
 | `pnpm test:unit`   | Vitest unit tests                                  |
 | `pnpm test:e2e`    | Playwright end-to-end tests                        |
 | `pnpm test`        | Full test suite                                    |
+
+</details>
 
 ## Deploy with Docker
 
