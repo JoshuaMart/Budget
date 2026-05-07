@@ -8,6 +8,10 @@
 	import AuthShell from '$lib/ui/AuthShell.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
 	const schema = z.object({
 		email: z.string().email('Email invalide'),
 		password: z.string().min(1, 'Mot de passe requis')
@@ -102,7 +106,10 @@
 		</button>
 	</form>
 
-	<p class="login-switch">
-		Pas encore de compte ? <a class="login-link" href={resolve('/register')}>Créer un compte</a>
-	</p>
+	{#if data.signupEnabled}
+		<p class="login-switch">
+			Pas encore de compte ?
+			<a class="login-link" href={resolve('/register')}>Créer un compte</a>
+		</p>
+	{/if}
 </AuthShell>

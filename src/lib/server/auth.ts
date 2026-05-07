@@ -11,6 +11,10 @@ if (!secret) {
 	throw new Error('BETTER_AUTH_SECRET is required (see .env.example)');
 }
 
+// Default-enabled. Only the explicit string "false" disables signup;
+// any other value (including an unset env var) leaves it on.
+export const signupEnabled = process.env.ENABLE_SIGNUP !== 'false';
+
 export const auth = betterAuth({
 	baseURL,
 	secret,
@@ -29,6 +33,7 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: true,
 		minPasswordLength: 8,
+		disableSignUp: !signupEnabled,
 		// No email infra in V1; do not block login on unverified addresses.
 		requireEmailVerification: false
 	},
