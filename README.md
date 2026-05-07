@@ -81,5 +81,3 @@ docker run -d --name budget \
   -v budget-data:/app/data \
   budget:latest
 ```
-
-The image is a 3-stage Bun build (build → prod-deps → minimal runtime). It runs as the non-root user `budget` (uid 1001), exposes port 3000, and persists SQLite under `/app/data` (declared as a Docker volume). Migrations run automatically on startup via `hooks.server.ts`.
