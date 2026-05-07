@@ -7,10 +7,15 @@
 // hashed and the account_auth row is created — login works immediately.
 
 import { and, eq } from 'drizzle-orm';
+import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 
 import { auth } from '../auth';
 import { db, sqlite } from './client';
 import { account, category, envelope, recurring, transaction, user } from './schema';
+
+// Apply migrations first so a freshly-cloned repo can `pnpm db:seed`
+// directly. Idempotent.
+migrate(db, { migrationsFolder: './drizzle' });
 
 const DEMO_EMAIL = 'demo@budget.local';
 const DEMO_PASSWORD = 'Budget123!';
