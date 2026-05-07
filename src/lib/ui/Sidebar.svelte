@@ -79,7 +79,6 @@
 	</div>
 
 	<div class="sidebar-foot">
-		<p>Méthode 50/30/20 — modifiable depuis les paramètres.</p>
 		<a href={resolve('/logout')} class="nav-item logout">Se déconnecter</a>
 	</div>
 </aside>
@@ -90,12 +89,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-	}
-	.sidebar-foot p {
-		padding: 0 12px;
-		font-size: 11px;
-		color: var(--text-subtle);
-		line-height: 1.5;
 	}
 	.logout {
 		font-size: 12px;
