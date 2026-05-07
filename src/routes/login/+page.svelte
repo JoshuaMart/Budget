@@ -5,6 +5,8 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { authClient } from '$lib/auth-client';
+	import AuthShell from '$lib/ui/AuthShell.svelte';
+	import Icon from '$lib/ui/Icon.svelte';
 
 	const schema = z.object({
 		email: z.string().email('Email invalide'),
@@ -13,6 +15,7 @@
 
 	let email = $state('');
 	let password = $state('');
+	let remember = $state(true);
 	let error = $state('');
 	let loading = $state(false);
 
@@ -39,105 +42,67 @@
 	}
 </script>
 
-<div class="auth-shell">
-	<form class="auth-card" onsubmit={submit}>
-		<h1>Connexion</h1>
-		<p class="sub">Accède à ton tableau de bord Budget.</p>
+<AuthShell>
+	<h1 class="login-h1">Bon retour</h1>
+	<p class="login-sub">Connecte-toi pour suivre tes dépenses selon la méthode 50/30/20.</p>
 
-		<label>
+	<form onsubmit={submit}>
+		<label class="field">
 			<span>Email</span>
-			<input bind:value={email} type="email" autocomplete="email" required />
+			<input
+				bind:value={email}
+				type="email"
+				placeholder="toi@example.com"
+				autocomplete="email"
+				required
+			/>
 		</label>
 
-		<label>
+		<label class="field">
 			<span>Mot de passe</span>
-			<input bind:value={password} type="password" autocomplete="current-password" required />
+			<input
+				bind:value={password}
+				type="password"
+				placeholder="••••••••"
+				autocomplete="current-password"
+				required
+			/>
 		</label>
+
+		<div class="login-remember">
+			<button
+				type="button"
+				class="login-check"
+				class:on={remember}
+				aria-label="Rester connecté"
+				aria-pressed={remember}
+				onclick={() => (remember = !remember)}
+			>
+				{#if remember}<Icon name="x" size={10} />{/if}
+			</button>
+			<span>Rester connecté sur cet appareil</span>
+		</div>
 
 		{#if error}
-			<p class="error" role="alert">{error}</p>
+			<p
+				role="alert"
+				style="margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; background: oklch(0.95 0.04 25); color: oklch(0.40 0.18 25); font-size: 13px;"
+			>
+				{error}
+			</p>
 		{/if}
 
-		<button type="submit" disabled={loading}>
+		<button
+			type="submit"
+			class="btn btn-primary"
+			disabled={loading}
+			style="width: 100%; justify-content: center; padding: 12px; font-size: 14px; margin-top: 6px;"
+		>
 			{loading ? 'Connexion…' : 'Se connecter'}
 		</button>
-
-		<p class="alt">
-			Pas encore de compte ? <a href={resolve('/register')}>Créer un compte</a>
-		</p>
 	</form>
-</div>
 
-<style>
-	.auth-shell {
-		min-height: 100vh;
-		display: grid;
-		place-items: center;
-		padding: 24px;
-		background: #f8f9fb;
-	}
-	.auth-card {
-		width: 100%;
-		max-width: 360px;
-		background: #fff;
-		padding: 28px;
-		border-radius: 12px;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-	}
-	h1 {
-		margin: 0;
-		font-size: 22px;
-	}
-	.sub {
-		margin: -6px 0 4px;
-		color: #6b7280;
-		font-size: 13px;
-	}
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		font-size: 13px;
-		color: #374151;
-	}
-	input {
-		padding: 10px 12px;
-		border: 1px solid #d1d5db;
-		border-radius: 8px;
-		font-size: 14px;
-	}
-	button {
-		padding: 11px;
-		background: #111827;
-		color: #fff;
-		border: 0;
-		border-radius: 8px;
-		font-weight: 600;
-		cursor: pointer;
-	}
-	button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-	.error {
-		margin: 0;
-		padding: 8px 10px;
-		border-radius: 6px;
-		background: #fee2e2;
-		color: #991b1b;
-		font-size: 13px;
-	}
-	.alt {
-		margin: 4px 0 0;
-		text-align: center;
-		font-size: 13px;
-		color: #6b7280;
-	}
-	.alt a {
-		color: #111827;
-		font-weight: 500;
-	}
-</style>
+	<p class="login-switch">
+		Pas encore de compte ? <a class="login-link" href={resolve('/register')}>Créer un compte</a>
+	</p>
+</AuthShell>
