@@ -38,3 +38,25 @@ cp .env.example .env   # puis remplir BETTER_AUTH_SECRET
 | `pnpm test:unit`   | Tests unitaires Vitest                                                                        |
 | `pnpm test:e2e`    | Tests E2E Playwright                                                                          |
 | `pnpm test`        | Suite complète                                                                                |
+
+## Docker (production)
+
+```sh
+# 1. Build the image
+docker build -t budget:latest .
+
+# 2. Run with a persistent volume for the SQLite DB.
+#    BETTER_AUTH_SECRET MUST be set; ORIGIN should match your public URL.
+docker run -d --name budget \
+  -p 3000:3000 \
+  -e BETTER_AUTH_SECRET="$(openssl rand -base64 32)" \
+  -e ORIGIN=https://budget.example.com \
+  -e ENABLE_SIGNUP=false \
+  -v budget-data:/app/data \
+  budget:latest
+```
+
+The image is a 3-stage Bun build (build → prod-deps → minimal runtime), runs as
+non-root user `budget` (uid 1001), exposes port 3000, and persists SQLite under
+`/app/data` (declared as a Docker volume). Migrations run automatically on
+startup via `hooks.server.ts`.

@@ -1,0 +1,40 @@
+# Build output / caches
+node_modules
+.svelte-kit
+build
+.output
+.vercel
+.netlify
+.wrangler
+
+# Local data — never bake the dev DB into the image.
+data
+*.db
+*.sqlite
+*.sqlite3
+*-journal
+*-wal
+*-shm
+
+# Environment — secrets must come from `docker run -e` / compose.
+.env
+.env.*
+!.env.example
+
+# VCS / tooling
+.git
+.github
+.husky
+.vscode
+.claude
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Tests / playwright artefacts
+test-results
+playwright-report
+
+# Dev-only mockup
+Maquette
