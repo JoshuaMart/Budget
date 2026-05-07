@@ -2,14 +2,18 @@
 // Idempotent: drops the demo user (and cascaded data) before re-inserting.
 //
 // Run with: pnpm db:seed
+//
+// The demo account uses better-auth's signUpEmail so the password is
+// hashed and the account_auth row is created — login works immediately.
 
 import { and, eq } from 'drizzle-orm';
 
-import { initUserData } from '../initUserData';
+import { auth } from '../auth';
 import { db, sqlite } from './client';
 import { account, category, envelope, recurring, transaction, user } from './schema';
 
 const DEMO_EMAIL = 'demo@budget.local';
+const DEMO_PASSWORD = 'Budget123!';
 const DEMO_NAME = 'Camille Démo';
 
 type Env = 'necessities' | 'wants' | 'investments';
@@ -359,18 +363,19 @@ const TRANSACTIONS: SeedTransaction[] = [
 
 const toCents = (eur: number): number => Math.round(eur * 100);
 
-function seed(): void {
-	// Drop existing demo user (cascades to all related data).
+async function seed(): Promise<void> {
+	// Drop existing demo user; cascades to account_auth, sessions, envelopes,
+	// categories, accounts, transactions, recurrings.
 	db.delete(user).where(eq(user.email, DEMO_EMAIL)).run();
 
-	const [demoUser] = db
-		.insert(user)
-		.values({ email: DEMO_EMAIL, name: DEMO_NAME, emailVerified: false })
-		.returning()
-		.all();
-	if (!demoUser) throw new Error('failed to insert demo user');
-
-	initUserData(demoUser.id);
+	// Sign up via better-auth so the password is properly hashed and the
+	// account_auth row is created. databaseHooks.user.create.after on the
+	// auth config will automatically run initUserData(userId).
+	const result = await auth.api.signUpEmail({
+		body: { email: DEMO_EMAIL, password: DEMO_PASSWORD, name: DEMO_NAME }
+	});
+	if (!result?.user?.id) throw new Error('failed to sign up demo user');
+	const demoUser = result.user;
 
 	// Lookup tables
 	const accounts = db.select().from(account).where(eq(account.userId, demoUser.id)).all();
@@ -460,9 +465,9 @@ function seed(): void {
 		.all().length;
 
 	console.log(
-		`Seeded demo user ${DEMO_EMAIL} — ${txCount} transactions, ${recCount} recurrings, ${catCount} real categories.`
+		`Seeded demo user ${DEMO_EMAIL} (password: ${DEMO_PASSWORD}) — ${txCount} transactions, ${recCount} recurrings, ${catCount} real categories.`
 	);
 }
 
-seed();
+await seed();
 sqlite.close();
