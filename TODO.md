@@ -70,26 +70,28 @@
 
 ### 2.1 Setup
 
-- [ ] `pnpm add better-auth`.
-- [ ] Créer `src/lib/server/auth.ts` : config `betterAuth({ database, emailAndPassword: { enabled: true } })`.
-- [ ] Connecter l'adapter Drizzle de better-auth au schéma SQLite.
-- [ ] Générer/synchroniser les tables d'auth via `better-auth` CLI ou migrations Drizzle.
-- [ ] Définir `BETTER_AUTH_SECRET` dans `.env` (32+ octets aléatoires).
+- [x] `better-auth` + `zod` installés.
+- [x] `src/lib/server/auth.ts` : `betterAuth({...})` avec `emailAndPassword.enabled = true`, `autoSignIn = true`, `minPasswordLength = 8`, `requireEmailVerification = false`.
+- [x] Adapter Drizzle (`drizzleAdapter(db, { provider: 'sqlite', schema })`) ; mapping `account` → `accountAuth` pour résoudre le clash avec la table comptes bancaires.
+- [x] Tables d'auth déjà couvertes par la migration `0000_*.sql` de 1.2 (user/session/account_auth/verification) — pas de migration supplémentaire.
+- [x] `BETTER_AUTH_SECRET` généré localement dans `.env` (`openssl rand -base64 32`). `.env` reste gitignoré.
 
 ### 2.2 Routes & UI
 
-- [ ] Endpoint catch-all `src/routes/api/auth/[...auth]/+server.ts` qui délègue à better-auth.
-- [ ] Hook `src/hooks.server.ts` : injecte `event.locals.user` et `event.locals.session` à partir du cookie de session.
-- [ ] Page `/login` (form action, errors visibles).
-- [ ] Page `/register` (form action, validation côté serveur, déclenche `initUserData`).
-- [ ] Bouton/route `/logout`.
-- [ ] Garde de routes : middleware qui redirige vers `/login` si pas de session pour toutes les routes hors `/login`, `/register`, `/api/auth/*`.
+- [x] Endpoint catch-all `src/routes/api/auth/[...all]/+server.ts` : délègue à `auth.handler(request)` pour GET et POST.
+- [x] `src/hooks.server.ts` : `auth.api.getSession({ headers })` peuple `event.locals.user` et `event.locals.session`. `src/app.d.ts` typé en conséquence.
+- [x] `+layout.server.ts` propage `data.user` à toutes les pages.
+- [x] Page `/login` (Svelte 5 runes + Zod + `authClient.signIn.email`, redirige vers `?next=...`).
+- [x] Page `/register` (Zod + `authClient.signUp.email`). `databaseHooks.user.create.after` exécute automatiquement `initUserData(userId)` à l'inscription (validé end-to-end : 3 envelopes + 19 cats + 2 accounts à la création).
+- [x] Page `/logout` : appelle `authClient.signOut()` puis redirige vers `/login`.
+- [x] Garde de routes dans `hooks.server.ts` : redirige vers `/login?next=...` si pas de session, sauf pour les préfixes publics (`/login`, `/register`, `/api/auth`). Validé : GET `/` anonyme → 303 vers `/login?next=%2F`.
 
 ### 2.3 Sécurité
 
-- [ ] Cookies `httpOnly`, `secure` en prod, `sameSite=lax`.
-- [ ] Rate-limit basique sur `/login` (ex. 5 essais / 10 min / IP).
-- [ ] Validation des entrées avec **Zod** (`pnpm add zod`).
+- [x] Cookies `httpOnly + sameSite=lax + secure` (en prod via `NODE_ENV`). Vérifié : header `Set-Cookie: better-auth.session_token=…; Max-Age=604800; Path=/; HttpOnly; SameSite=Lax`.
+- [x] Rate-limit better-auth activé (`storage: 'memory'`), règles renforcées sur `/sign-in/email` et `/sign-up/email` (5 essais / 600 s).
+- [x] Validation Zod côté client sur `/login` et `/register`. Better-auth applique aussi ses propres règles (longueur du mot de passe, format email).
+- [x] Protection CSRF de better-auth active : POST sans `Origin` est rejeté avec 403 `MISSING_OR_NULL_ORIGIN` (le navigateur envoie l'Origin automatiquement).
 
 ---
 
