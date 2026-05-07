@@ -20,7 +20,10 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
-RUN pnpm build
+# auth.ts throws if BETTER_AUTH_SECRET is unset, so we feed it a placeholder
+# during build only. It is NOT carried into the runtime image — the user
+# must provide a real secret via `docker run -e BETTER_AUTH_SECRET=...`.
+RUN BETTER_AUTH_SECRET=build-time-placeholder-not-for-runtime pnpm build
 
 # ----------------------------------------------------------------
 # Stage 2 — production-only node_modules (no devDependencies)
