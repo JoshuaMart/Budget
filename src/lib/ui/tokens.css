@@ -1,0 +1,35 @@
+:root {
+	--bg: #faf7f2;
+	--bg-elev: #ffffff;
+	--bg-sunk: #f4f0e9;
+	--border: oklch(0.92 0.005 80);
+	--border-strong: oklch(0.86 0.008 80);
+	--text: oklch(0.22 0.01 80);
+	--text-muted: oklch(0.5 0.01 80);
+	--text-subtle: oklch(0.65 0.01 80);
+
+	--nec: oklch(0.55 0.08 155);
+	--nec-soft: oklch(0.95 0.025 155);
+	--nec-mid: oklch(0.85 0.05 155);
+
+	--want: oklch(0.65 0.12 60);
+	--want-soft: oklch(0.96 0.035 60);
+	--want-mid: oklch(0.87 0.07 60);
+
+	--inv: oklch(0.5 0.1 260);
+	--inv-soft: oklch(0.95 0.03 260);
+	--inv-mid: oklch(0.86 0.05 260);
+
+	--shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.04), 0 0 0 1px oklch(0.2 0.01 80 / 0.04);
+	--shadow-md:
+		0 1px 3px oklch(0.2 0.01 80 / 0.06), 0 4px 12px oklch(0.2 0.01 80 / 0.04),
+		0 0 0 1px oklch(0.2 0.01 80 / 0.04);
+	--shadow-lg: 0 4px 12px oklch(0.2 0.01 80 / 0.08), 0 16px 40px oklch(0.2 0.01 80 / 0.1);
+
+	--radius: 14px;
+	--radius-sm: 8px;
+	--radius-lg: 20px;
+
+	--font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}

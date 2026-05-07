@@ -158,17 +158,21 @@
 
 ### 5.1 Design system
 
-- [ ] Porter `Maquette/styles.css` dans `src/app.css` + tokens (variables CSS) en `src/lib/ui/tokens.css`.
-- [ ] Composant `Icon.svelte` (porter `Maquette/icons.jsx`).
-- [ ] Composants atomiques : `Button.svelte`, `Input.svelte`, `Select.svelte`, `Switch.svelte`, `Modal.svelte`, `Tabs.svelte`, `Pill.svelte`.
-- [ ] Composant `Money.svelte` (formatage + signe).
-- [ ] Composant `EnvelopeTag.svelte`.
+- [x] `Maquette/styles.css` (1475 lignes) splité : `src/lib/ui/tokens.css` (35 lignes — toutes les variables CSS du `:root`) + `src/app.css` (le reste, importe `tokens.css`).
+- [x] Fonts (`Inter` 400/500/600/700 + `JetBrains Mono` 400/500/600) chargées via `<link>` dans `app.html`. Lang `fr`.
+- [x] `Icon.svelte` : 15 icônes portées de `Maquette/icons.jsx` via `{#if name === ...}` typé par l'union `IconName`.
+- [x] Composants atomiques dans `$lib/ui/` : `Button` (variants `primary`/`ghost`), `Input` (label + erreur), `Select` (générique sur la valeur), `Switch` (toggle .rec-toggle), `Modal` (backdrop + close + escape), `Tabs` (modal-tabs), `Pill` (`tx-filter-pill` + variant enveloppe).
+- [x] `Money.svelte` enveloppe `formatCents(cents, { signed?, compact? })` du domaine.
+- [x] `EnvelopeTag.svelte` : tag avec dot, classe `env-<key>` qui injecte les `--env*`.
+- [x] `$lib/ui/index.ts` réexporte tout pour des imports concis.
 
 ### 5.2 Layout
 
-- [ ] `src/routes/+layout.svelte` : sidebar + main, charge l'utilisateur depuis `locals`.
-- [ ] `src/routes/+layout.server.ts` : précharge comptes + enveloppes pour la sidebar.
-- [ ] `Sidebar.svelte` (port de `Maquette/sidebar.jsx`) : navigation + liste des comptes + total + bouton « modifier ».
+- [x] `src/routes/+layout.server.ts` : précharge `accounts` (avec solde calculé) et `envelopes` pour les utilisateurs authentifiés ; renvoie des arrays vides sinon (pages publiques).
+- [x] `src/routes/+layout.svelte` : importe `app.css`, conditionne sur `data.user` — sidebar + `<main class="main">` si connecté, juste `{@render children()}` sinon (les pages `/login` et `/register` gardent leur propre auth-shell).
+- [x] `Sidebar.svelte` : port de `Maquette/sidebar.jsx`. Brand, nav typée via `resolve()`, liste des comptes avec `Money`, total tous comptes calculé via `$derived`, footer + lien `Se déconnecter`. `isActive` highlight via `page.url.pathname`. Prop `onEditAccounts` optionnelle (sera câblée à la modale en section 6).
+- [x] Stubs `+page.svelte` créés pour `/transactions`, `/recurring`, `/stats` (placeholders « Vue à venir en section 6 ») afin de satisfaire le typage `resolve()` ; le scaffold `/demo` est supprimé.
+- Validation : login démo → home avec sidebar (Bonjour Camille + 3 nav items + 2 comptes + total + lien logout), `/transactions` 200 avec sidebar, `/login` 200 sans sidebar (auth-card visible).
 
 ---
 

@@ -1,5 +1,15 @@
+import { listAccountsWithBalance } from '$lib/server/services/accounts.service';
+import { listEnvelopes } from '$lib/server/services/envelopes.service';
+
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = ({ locals }) => ({
-	user: locals.user
-});
+export const load: LayoutServerLoad = ({ locals }) => {
+	if (!locals.user) {
+		return { user: null, accounts: [], envelopes: [] };
+	}
+	return {
+		user: locals.user,
+		accounts: listAccountsWithBalance(locals.user.id),
+		envelopes: listEnvelopes(locals.user.id)
+	};
+};
