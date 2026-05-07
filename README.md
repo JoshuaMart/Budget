@@ -23,14 +23,18 @@ cp .env.example .env   # puis remplir BETTER_AUTH_SECRET
 
 ## Commandes
 
-| Commande         | Effet                                                    |
-| ---------------- | -------------------------------------------------------- |
-| `pnpm dev`       | Lance le serveur de dev (Vite) sur http://localhost:5173 |
-| `pnpm build`     | Build de production (`build/` exécutable avec Bun)       |
-| `pnpm preview`   | Sert le build local                                      |
-| `pnpm check`     | `svelte-check` + TypeScript strict                       |
-| `pnpm lint`      | Prettier --check + ESLint                                |
-| `pnpm format`    | Prettier --write                                         |
-| `pnpm test:unit` | Tests unitaires Vitest                                   |
-| `pnpm test:e2e`  | Tests E2E Playwright                                     |
-| `pnpm test`      | Suite complète                                           |
+| Commande           | Effet                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `pnpm dev`         | Lance le serveur de dev (Vite) sur http://localhost:5173                                      |
+| `pnpm build`       | Build de production (`build/` exécutable avec Bun)                                            |
+| `pnpm preview`     | Sert le build local                                                                           |
+| `pnpm check`       | `svelte-check` + TypeScript strict                                                            |
+| `pnpm lint`        | Prettier --check + ESLint                                                                     |
+| `pnpm format`      | Prettier --write                                                                              |
+| `pnpm db:generate` | Génère une migration Drizzle à partir des changements de schéma                               |
+| `pnpm db:migrate`  | Applique les migrations en attente                                                            |
+| `pnpm db:seed`     | Crée un utilisateur démo (`demo@budget.local` / `Budget123!`) avec les données de la maquette |
+| `pnpm db:studio`   | Ouvre Drizzle Studio sur la DB locale                                                         |
+| `pnpm test:unit`   | Tests unitaires Vitest                                                                        |
+| `pnpm test:e2e`    | Tests E2E Playwright                                                                          |
+| `pnpm test`        | Suite complète                                                                                |
