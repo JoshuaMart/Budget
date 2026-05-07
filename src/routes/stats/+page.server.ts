@@ -7,8 +7,6 @@ import { listTransactions } from '$lib/server/services/transactions.service';
 
 import type { PageServerLoad } from './$types';
 
-const RATIOS = { necessities: 50, wants: 30, investments: 20 };
-
 export const load: PageServerLoad = ({ locals }) => {
 	if (!locals.user) throw redirect(303, '/login');
 	const userId = locals.user.id;
@@ -18,10 +16,17 @@ export const load: PageServerLoad = ({ locals }) => {
 
 	const envelopes = listEnvelopes(userId);
 	const transactions = listTransactions(userId);
-	const summary = monthSummary(transactions, envelopes, RATIOS, ym);
+
+	const ratios = {
+		necessities: envelopes.find((e) => e.key === 'necessities')?.ratio ?? 50,
+		wants: envelopes.find((e) => e.key === 'wants')?.ratio ?? 30,
+		investments: envelopes.find((e) => e.key === 'investments')?.ratio ?? 20
+	};
+
+	const summary = monthSummary(transactions, envelopes, ratios, ym);
 	const trend = monthlyTrend(userId, ym, 6);
 	const top = topCategories(userId, ym, 6);
-	const compliance = complianceScore(summary, RATIOS);
+	const compliance = complianceScore(summary, ratios);
 
 	return { ym, envelopes, summary, trend, top, compliance };
 };

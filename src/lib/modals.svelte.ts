@@ -9,6 +9,7 @@ class ModalState {
 		defaultMode: 'expense'
 	});
 	accounts = $state<{ open: boolean }>({ open: false });
+	ratios = $state<{ open: boolean }>({ open: false });
 
 	openAddTx(defaultMode: AddTxMode = 'expense') {
 		this.addTx = { open: true, defaultMode };
@@ -24,6 +25,14 @@ class ModalState {
 
 	closeAccounts() {
 		this.accounts = { open: false };
+	}
+
+	openRatios() {
+		this.ratios = { open: true };
+	}
+
+	closeRatios() {
+		this.ratios = { open: false };
 	}
 }
 

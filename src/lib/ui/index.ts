@@ -6,6 +6,7 @@ export { default as Input } from './Input.svelte';
 export { default as Modal } from './Modal.svelte';
 export { default as Money } from './Money.svelte';
 export { default as Pill } from './Pill.svelte';
+export { default as RatiosModal } from './RatiosModal.svelte';
 export { default as Select } from './Select.svelte';
 export { default as Switch } from './Switch.svelte';
 export { default as Tabs } from './Tabs.svelte';

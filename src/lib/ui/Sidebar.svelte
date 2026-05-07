@@ -8,10 +8,12 @@
 
 	let {
 		accounts,
-		onEditAccounts
+		onEditAccounts,
+		onEditRatios
 	}: {
 		accounts: AccountWithBalance[];
 		onEditAccounts?: () => void;
+		onEditRatios?: () => void;
 	} = $props();
 
 	const navItems = [
@@ -79,6 +81,11 @@
 	</div>
 
 	<div class="sidebar-foot">
+		{#if onEditRatios}
+			<button type="button" class="nav-item settings" onclick={onEditRatios}>
+				<Icon name="settings" /> Ratios 50/30/20
+			</button>
+		{/if}
 		<a href={resolve('/logout')} class="nav-item logout">Se déconnecter</a>
 	</div>
 </aside>
@@ -88,7 +95,10 @@
 		margin-top: auto;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 2px;
+	}
+	.settings {
+		font-size: 12.5px;
 	}
 	.logout {
 		font-size: 12px;

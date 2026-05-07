@@ -1,12 +1,13 @@
 import { fail, redirect } from '@sveltejs/kit';
 
 import { monthSummary, type YearMonth } from '$lib/domain';
+import { ratiosInput } from '$lib/server/schemas';
 import {
 	createCategory,
 	deleteCategory,
 	listCategories
 } from '$lib/server/services/categories.service';
-import { listEnvelopes } from '$lib/server/services/envelopes.service';
+import { listEnvelopes, updateRatios } from '$lib/server/services/envelopes.service';
 import { listTransactions } from '$lib/server/services/transactions.service';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -22,8 +23,6 @@ function parseMonthParam(raw: string | null): YearMonth {
 	return { year: now.getFullYear(), month: now.getMonth() };
 }
 
-const RATIOS = { necessities: 50, wants: 30, investments: 20 };
-
 export const load: PageServerLoad = ({ locals, url }) => {
 	if (!locals.user) throw redirect(303, '/login');
 	const userId = locals.user.id;
@@ -31,10 +30,15 @@ export const load: PageServerLoad = ({ locals, url }) => {
 
 	const envelopes = listEnvelopes(userId);
 	const categories = listCategories(userId);
-	// Pull user transactions once and aggregate in-memory; fine until 100k+ rows.
 	const transactions = listTransactions(userId);
 
-	const summary = monthSummary(transactions, envelopes, RATIOS, ym);
+	const ratios = {
+		necessities: envelopes.find((e) => e.key === 'necessities')?.ratio ?? 50,
+		wants: envelopes.find((e) => e.key === 'wants')?.ratio ?? 30,
+		investments: envelopes.find((e) => e.key === 'investments')?.ratio ?? 20
+	};
+
+	const summary = monthSummary(transactions, envelopes, ratios, ym);
 
 	return { ym, envelopes, categories, summary };
 };
@@ -60,6 +64,21 @@ export const actions: Actions = {
 		} catch (e) {
 			return fail(400, { error: e instanceof Error ? e.message : 'Suppression impossible' });
 		}
+		return { success: true };
+	},
+
+	updateRatios: async ({ request, locals }) => {
+		if (!locals.user) return fail(401);
+		const data = await request.formData();
+		const parsed = ratiosInput.safeParse({
+			necessities: Number(data.get('necessities')),
+			wants: Number(data.get('wants')),
+			investments: Number(data.get('investments'))
+		});
+		if (!parsed.success) {
+			return fail(400, { error: parsed.error.issues[0]?.message ?? 'Ratios invalides' });
+		}
+		updateRatios(locals.user.id, parsed.data);
 		return { success: true };
 	}
 };
