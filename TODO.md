@@ -127,26 +127,30 @@
 
 ### 4.1 Services `src/lib/server/services/`
 
-- [ ] `accounts.service.ts` : CRUD comptes + recalcul du solde.
-- [ ] `envelopes.service.ts` : lecture des enveloppes + mise à jour des ratios (validation : somme = 100).
-- [ ] `categories.service.ts` : CRUD sous-catégories + reclassement vers « Non catégorisé » à la suppression.
-- [ ] `transactions.service.ts` : CRUD transactions, filtre par mois/enveloppe/recherche, gestion des transferts.
-- [ ] `recurring.service.ts` : CRUD récurrents, toggle, déclenchement.
-- [ ] `stats.service.ts` : agrégations (6 mois de tendance, top catégories du mois, donut).
+- [x] `accounts.service.ts` : `listAccounts`, `listAccountsWithBalance` (utilise `accountBalance` du domaine), `createAccount`, `updateAccount`, `deleteAccount` (cascade FK).
+- [x] `envelopes.service.ts` : `listEnvelopes`, `updateRatios` (transactionnel ; validation 100 % faite au niveau Zod).
+- [x] `categories.service.ts` : `listCategories`, `createCategory`, `updateCategory`, `deleteCategory` qui réassigne les transactions/recurrents à la catégorie virtuelle « Non catégorisé » de l'enveloppe avant la suppression (refuse de supprimer la catégorie virtuelle).
+- [x] `transactions.service.ts` : `listTransactions(userId, { year?, month?, envelopeId?, merchantSearch? })` (tri date desc + createdAt desc), `createTransaction` / `updateTransaction` qui appliquent automatiquement le signe selon `kind`, `deleteTransaction`.
+- [x] `recurring.service.ts` : `listRecurrings`, `create/update/toggle/deleteRecurring`, plus `runDueRecurrings(now)` exporté pour le scheduler.
+- [x] `stats.service.ts` : `monthlyTrend(userId, anchor, count)`, `topCategories(userId, ym, limit)`, `envelopeDonut(userId, ym, ratios)`.
+- [x] `services/index.ts` réexporte les modules en namespaces (`services.accounts.list...`).
 
 ### 4.2 Schémas Zod (`src/lib/server/schemas/`)
 
-- [ ] Schéma `transactionInput` (3 variantes : expense, transfer, income).
-- [ ] Schéma `recurringInput`.
-- [ ] Schéma `accountInput`.
-- [ ] Schéma `categoryInput`.
-- [ ] Schéma `ratiosInput` (refine : somme = 100).
+- [x] `transactionInput` : `discriminatedUnion('kind', [expense, transfer, income])` avec date ISO `YYYY-MM-DD`, montants en centimes positifs (le service applique le signe).
+- [x] `recurringInput` : même union étendue avec `frequency`, `dayOfMonth`, `nextDate`.
+- [x] `accountInput` : `label`, `type ∈ {checking,savings}`, `initialBalanceCents` (default 0).
+- [x] `categoryInput` : `envelopeId`, `label`, `icon?`.
+- [x] `ratiosInput` : trois entiers 0–100, `refine` qui rejette si la somme ≠ 100.
+- [x] Tous exposés depuis `schemas/index.ts`.
 
 ### 4.3 Cron / déclencheur de récurrents
 
-- [ ] Au démarrage du serveur : matérialiser les récurrents `active` dont `nextDate <= today` (rattrapage).
-- [ ] Hook quotidien (setInterval simple ou job Bun) qui rejoue le check à minuit.
-- [ ] Idempotence : ne pas créer deux fois la transaction d'un même `recurringId` pour la même `nextDate`.
+- [x] `runDueRecurrings(now)` (dans `recurring.service.ts`) : boucle tant qu'il reste des récurrents `active` avec `nextDate <= today`. À chaque itération, matérialise la transaction (si pas déjà présente pour ce `(recurringId, date)` — **idempotent**), avance `nextDate` via `nextOccurrence` du domaine. Garde-fou de 1000 itérations contre les boucles infinies.
+- [x] `recurringScheduler.ts` : `startRecurringScheduler()` exécute `runDueRecurrings` au boot, puis un `setInterval` 24 h. Flag `started` pour ne pas empiler plusieurs timers en HMR. `unref()` pour ne pas bloquer la fermeture du process.
+- [x] Branché dans `src/hooks.server.ts` après les migrations.
+- [x] Idempotence : `INSERT INTO transaction` est conditionné à l'absence de ligne `(recurringId, date)` existante dans la même transaction Drizzle.
+- Validation manuelle : récurrent « Loyer » backdaté à 2026-04-01 → `runDueRecurrings(2026-05-07)` insère la tx du 04-01, skippe celle du 05-01 (déjà seedée), avance `nextDate` à 06-01. Comportement attendu.
 
 ---
 

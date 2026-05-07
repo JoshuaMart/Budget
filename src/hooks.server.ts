@@ -3,10 +3,14 @@ import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db/client';
+import { startRecurringScheduler } from '$lib/server/recurringScheduler';
 
 // Apply pending migrations on server startup. Idempotent: drizzle's
 // migrator skips entries already recorded in __drizzle_migrations.
 migrate(db, { migrationsFolder: './drizzle' });
+
+// Materialise due recurrings now and every 24h afterwards.
+startRecurringScheduler();
 
 const PUBLIC_PREFIXES = ['/login', '/register', '/api/auth'];
 
