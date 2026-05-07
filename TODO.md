@@ -231,9 +231,11 @@ End-to-end vérifié : login démo → dashboard montre « Bonjour Camille » / 
 
 ### 8.1 Vitest (intégration server)
 
-- [ ] Test `transactions.service` avec une DB SQLite en mémoire.
-- [ ] Test du flux création utilisateur → `initUserData` → vérifier 3 enveloppes + catégories + 2 comptes.
-- [ ] Test suppression catégorie → reclassement vers « Non catégorisé ».
+- [x] Setup : `pnpm test:unit` lance Vitest sous Bun (`bun --bun vitest`) pour avoir accès à `bun:sqlite`. `src/test-setup.ts` configure `DATABASE_URL=:memory:` + `BETTER_AUTH_SECRET` factice avant le premier import du client, puis applique les migrations sur la DB en mémoire (une fois par worker).
+- [x] **`transactions.service.test.ts`** (5 tests) : signe automatique selon `kind` (expense/income/transfer), filtres `listTransactions` (mois + enveloppe + recherche merchant), `updateTransaction` qui réapplique le signe lors d'un changement de kind, `deleteTransaction`, isolation entre users.
+- [x] **`initUserData.test.ts`** (5 tests) : 3 enveloppes 50/30/20 avec leurs labels, 16 catégories réelles (8 + 3 + 5) avec spot-checks, 1 catégorie virtuelle « Non catégorisé » par enveloppe, 2 comptes par défaut (Compte courant + Épargne), cascade delete user → tout vide.
+- [x] **`categories.service.test.ts`** (4 tests) : `createCategory` + `listCategories`, `deleteCategory` reassigne les transactions à la catégorie virtuelle de la même enveloppe, refus de supprimer la catégorie virtuelle (throw `/non catégorisé/i`), isolation user (impossible de supprimer la catégorie d'un autre utilisateur).
+- Total : **60 tests verts** (46 domaine + 14 intégration), 9 fichiers, ~200 ms.
 
 ### 8.2 Playwright (E2E)
 
