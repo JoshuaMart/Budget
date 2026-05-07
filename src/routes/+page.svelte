@@ -178,7 +178,19 @@
 				{@const pct = max > 0 ? (amount / max) * 100 : 0}
 				<div class="cat-tile">
 					{#if !c.isVirtual}
-						<form method="POST" action="?/removeCategory" use:enhance>
+						<form
+							method="POST"
+							action="?/removeCategory"
+							use:enhance={({ cancel }) => {
+								if (
+									!confirm(
+										`Supprimer la catégorie « ${c.label} » ?\nLes transactions concernées seront reclassées dans « Non catégorisé ».`
+									)
+								) {
+									cancel();
+								}
+							}}
+						>
 							<input type="hidden" name="categoryId" value={c.id} />
 							<button class="cat-tile-delete" type="submit" title="Supprimer">
 								<Icon name="x" size={12} />
