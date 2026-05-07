@@ -180,36 +180,41 @@
 
 ### 6.1 Tableau de bord (`/`)
 
-- [ ] `+page.server.ts` : charge transactions du mois, comptes, enveloppes, ratios.
-- [ ] `Dashboard.svelte` : topbar (salutation, mois, navigation, bouton ajouter), 4 hero metrics, 3 cartes enveloppes.
-- [ ] `CategoriesGrid.svelte` : onglets par enveloppe + grille de tuiles.
-- [ ] Form action : `addCategory`, `removeCategory`.
-- [ ] Navigation `<` / `>` mois (URL param `?m=YYYY-MM`).
+- [x] `+page.server.ts` : parse `?m=YYYY-MM` (défaut = mois courant), charge transactions + enveloppes + catégories, calcule `monthSummary` côté serveur.
+- [x] Dashboard view (port direct du `Maquette/dashboard.jsx`) : topbar avec salutation + month-switcher + bouton « Ajouter une transaction » qui ouvre `AddTxModal`, 4 hero metrics (Reste à allouer, Revenus, Dépensé, Jours restants), 3 cartes enveloppes cliquables.
+- [x] Détail des catégories : onglets par enveloppe (`{#key activeEnvKey}`), grille de tuiles avec barre relative, bouton suppression et tuile « Ajouter une catégorie ».
+- [x] Form actions `?/addCategory` et `?/removeCategory` avec `use:enhance`. La catégorie virtuelle « Non catégorisé » n'a pas de bouton supprimer.
+- [x] Navigation mois `<` / `>` via `?m=YYYY-MM` + helper `addMonths`.
 
 ### 6.2 Transactions (`/transactions`)
 
-- [ ] `+page.server.ts` : recherche + filtre enveloppe en query params, pagination si nécessaire.
-- [ ] `Transactions.svelte` : toolbar (recherche, filtres pills) + liste groupée par jour.
-- [ ] Form action : suppression d'une transaction (avec confirmation).
-- [ ] Bouton « Ajouter » → ouvre `AddTxModal`.
+- [x] `+page.server.ts` : filtres `?q=...&env=<id>` en query params, tri date desc + createdAt desc.
+- [x] Vue : toolbar avec recherche + filtres pills par enveloppe (« Tout » + 3 enveloppes), liste groupée par jour avec total quotidien.
+- [x] Chaque ligne : avatar, libellé + badge Récurrent éventuel, sous-catégorie ou flèche pour transferts, tag enveloppe (ou Revenu), compte (avec flèche transferts), montant signé.
+- [x] Form action `?/create` (depuis la modale AddTx) et `?/delete` (par-ligne, à câbler dans la modale détail).
+- [x] Bouton « Ajouter » ouvre `AddTxModal`.
 
 ### 6.3 Récurrents (`/recurring`)
 
-- [ ] `+page.server.ts` : charge récurrents + agrège par enveloppe.
-- [ ] `Recurring.svelte` : résumé + bloc solde net mensuel + liste.
-- [ ] Form action : `toggleRecurring`, `removeRecurring`.
+- [x] `+page.server.ts` : charge tous les récurrents.
+- [x] Vue (port `Maquette/recurring.jsx`) : topbar avec compteur actifs + total charges, bloc « Engagements mensuels par enveloppe » avec total, bloc « Solde net mensuel » (revenus récurrents − charges) avec deux pavés Revenus / Charges colorés.
+- [x] Liste triée par montant décroissant : avatar, libellé, fréquence, prochaine date, compte, montant signé, toggle actif/inactif.
+- [x] Form action `?/toggle` (sur le toggle) et `?/delete`. Bouton « Nouveau récurrent » ouvre `AddTxModal` (la création de récurrent en V2 ; pour l'instant la modale fait juste une transaction).
 
 ### 6.4 Statistiques (`/stats`)
 
-- [ ] `+page.server.ts` : calcule la tendance 6 mois, top catégories, donut.
-- [ ] `Stats.svelte` : 4 hero + 2 graphiques (barres empilées + donut SVG) + top catégories.
-- [ ] Donut : porter le SVG de la maquette en composant Svelte.
+- [x] `+page.server.ts` : utilise `monthlyTrend` (6 mois), `topCategories` et `complianceScore` du domaine + service stats.
+- [x] Vue : 4 hero (Dépensé du mois, Moyenne 6 mois, Investissements cumulés, Conformité 50/30/20), barres empilées 6 mois, Donut SVG de répartition, top catégories triées.
+- [x] `Donut.svelte` : SVG portant à 100 % les segments par enveloppe (`stroke-dasharray`) + légende avec barre, % et budget cible.
 
 ### 6.5 Modales
 
-- [ ] `AddTxModal.svelte` (porter `Maquette/modals.jsx` AddTxModal). 3 onglets, validation Zod côté serveur via form action.
-- [ ] `AccountsModal.svelte` (porter AccountsModal). Édition liste, ajout, suppression, sauvegarde via form action.
-- [ ] Comportement : fermeture sur backdrop, échappement clavier, focus trap.
+- [x] `AddTxModal.svelte` (port `Maquette/modals.jsx`) : 3 onglets (Dépense / Transfert / Revenu), montant + libellé + sélecteurs enveloppe / catégorie / compte / date, post vers `/transactions?/create` via `use:enhance`. Validation Zod côté serveur (`transactionInput`).
+- [x] `AccountsModal.svelte` : liste éditable (label + solde initial), ajout, suppression, sauvegarde batched via fetch JSON vers `/api/accounts` (POST avec payload `{ create, update, delete }` validé Zod).
+- [x] Comportement : fermeture au clic backdrop, touche Escape, redirection auto après création (invalidateAll).
+- [x] État global dans `$lib/modals.svelte.ts` (classe avec `$state`) ; modales rendues une fois dans `+layout.svelte` via `{#if modals.addTx.open}`. Bouton crayon de la sidebar appelle `modals.openAccounts()`.
+
+End-to-end vérifié : login démo → dashboard montre « Bonjour Camille » / 3 enveloppes avec barres / 16 catégories réelles + 3 virtuelles, `/transactions` liste les 25 tx avec badges Récurrent, `/recurring` liste les 9 récurrents + Solde net, `/stats` rend Donut + barres + top catégories + score conformité.
 
 ---
 
