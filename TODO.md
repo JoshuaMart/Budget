@@ -101,31 +101,25 @@
 
 ### 3.1 Modules `src/lib/domain/`
 
-- [ ] `money.ts` : conversions cents ↔ euros, formatage `Intl.NumberFormat('fr-FR', { currency: 'EUR' })`.
-- [ ] `dates.ts` : helpers mois courant, début/fin de mois, libellés FR (`Janvier`, `Lun 12 Mai`…).
-- [ ] `budget.ts` :
-  - [ ] `monthIncome(transactions, year, month)` → somme des `kind == 'income'`.
-  - [ ] `envelopeBudget(income, ratio)` → `income * ratio / 100`.
-  - [ ] `envelopeSpent(transactions, envelopeId, year, month)`.
-  - [ ] `envelopeRemaining(budget, spent)`.
-  - [ ] `monthSummary(transactions, ratios, year, month)` → tout en un seul passage (perf).
-- [ ] `accounts.ts` :
-  - [ ] `accountBalance(account, transactions)` (gère transferts).
-- [ ] `recurring.ts` :
-  - [ ] `nextOccurrence(recurring, fromDate)`.
-  - [ ] `dueRecurrings(recurrings, today)` → liste à matérialiser.
-  - [ ] `materialize(recurring, date)` → produit une `Transaction`.
-- [ ] `compliance.ts` : score de conformité 50/30/20 (formule à arrêter — voir §7).
+- [x] `money.ts` : `toCents`/`toEuros` + `formatCents(cents, { signed?, compact? })` via `Intl.NumberFormat('fr-FR', currency:EUR)`. Compact arrondit à l'euro entier au-delà de 1000.
+- [x] `dates.ts` : `parseIsoDate`/`toIsoDate` (sans drift UTC), `monthOf`, `isInMonth`, `monthLabel` ("Mai 2026"), `dayLabel` ("Lun 7 Mai"), `startOfMonth`/`endOfMonth`/`daysInMonth`, `daysRemainingInMonth`, `addMonths`.
+- [x] `budget.ts` : `monthIncome`, `envelopeBudget`, `envelopeSpent`, `envelopeRemaining`, et `monthSummary` (single-pass : revenus + total dépensé + per-envelope + per-category).
+- [x] `accounts.ts` : `accountBalance(account, transactions)` qui applique le signe des transactions sur `accountId` et crédite `toAccountId` pour les transferts.
+- [x] `recurring.ts` : `nextOccurrence(frequency, dayOfMonth, fromIso)` (clamp jour 31 → fin de mois cible), `dueRecurrings`, `materialize(rec, date)` (signe correct selon `kind`, conserve `recurringId`).
+- [x] `compliance.ts` : `complianceScore = max(0, 100 − Σ |ratioRéel − ratioCible|)`. 100 si rien dépensé ou ratios parfaits, 0 dans le pire cas.
+- [x] `index.ts` réexporte tous les modules. Imports de types DB en `import type` (zéro runtime).
 
 ### 3.2 Tests unitaires (Vitest)
 
-- [ ] Test `money` (arrondis, format FR).
-- [ ] Test `monthIncome` avec transactions multi-mois et incomes mixtes.
-- [ ] Test `envelopeBudget` quand income = 0.
-- [ ] Test `envelopeRemaining` négatif (dépassement).
-- [ ] Test transferts dans `accountBalance` (débit source + crédit cible).
-- [ ] Test `nextOccurrence` pour `weekly`, `monthly` (avec `dayOfMonth` sur fin de mois — gérer février), `yearly`.
-- [ ] Test `materialize` : transaction générée a bien `recurringId`.
+- [x] **46 tests sur 6 fichiers** (`money` 7, `dates` 12, `budget` 9, `accounts` 4, `recurring` 10, `compliance` 4). Tous verts.
+- [x] `money` : arrondis half-up, signe, séparateur de milliers, mode compact, robustesse aux variations d'espaces Intl (NBSP/NNBSP) via `normalize`.
+- [x] `monthIncome` : multi-mois, incomes mixtes, mois sans revenu.
+- [x] `envelopeBudget` : `income = 0`, arrondi cent.
+- [x] `envelopeRemaining` : dépassement négatif.
+- [x] `accountBalance` : transferts (débit source + crédit cible), comptes étrangers ignorés.
+- [x] `nextOccurrence` : weekly, monthly (jour 31 → fév 28/29 année bissextile, 30 avril), yearly.
+- [x] `materialize` : signes par `kind`, `recurringId` conservé.
+- [x] **Bonus** : suppression de `src/lib/vitest-examples/` (placeholder du scaffold).
 
 ---
 
