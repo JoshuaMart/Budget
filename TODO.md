@@ -220,10 +220,10 @@ End-to-end vérifié : login démo → dashboard montre « Bonjour Camille » / 
 
 ## 7. Calcul du score de conformité 50/30/20
 
-- [ ] Décider de la formule (suggestion : `100 − Σ |ratioRéel − ratioCible|` plafonné à 0).
-- [ ] Documenter dans `SPECIFICATIONS.md §4`.
-- [ ] Implémenter dans `domain/compliance.ts`.
-- [ ] Tester : ratios parfaits = 100 %, dépense uniquement Envies = score bas.
+- [x] Formule figée : `score = max(0, 100 − Σ |ratioRéel − ratioCible|)`. Cas limites : `totalDépensé == 0` ⇒ 100. Pire cas (tout dans une seule enveloppe non ciblée) ⇒ 0.
+- [x] Documenté dans `SPECIFICATIONS.md §4`.
+- [x] Implémenté dans `src/lib/domain/compliance.ts` (section 3.1).
+- [x] Tests Vitest : 4 cas couverts dans `compliance.test.ts` (rien dépensé, ratios parfaits, déviation 60/30/10, pire cas 100/0/0). Tous verts.
 
 ---
 

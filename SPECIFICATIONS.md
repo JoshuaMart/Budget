@@ -210,7 +210,7 @@ Aperçu mensuel :
 - **Reste d'une enveloppe** = `budget − dépensé`. Si négatif → dépassement (UI rouge).
 - **Reste à allouer** = `monthlyIncome − totalSpent`.
 - **Solde courant d'un compte** = `initial + Σ(transactions du compte)` (les transferts débitent le compte source et créditent le compte cible).
-- **Score de conformité 50/30/20** : à définir précisément. Indication actuelle : ratio entre l'écart effectif et l'écart cible.
+- **Score de conformité 50/30/20** : `score = max(0, 100 − Σₑ |ratioRéelₑ − ratioCibleₑ|)` où `ratioRéelₑ = (dépenséₑ / totalDépensé) × 100` pour chaque enveloppe `e ∈ {Nécessités, Envies, Investissements}`. La somme des écarts absolus mesure la distance à la répartition cible (0 si l'utilisateur dépense exactement selon ses ratios). Plafonné à 0 dans le pire cas (toutes les dépenses dans une seule enveloppe non ciblée). Cas limite : si `totalDépensé == 0`, score = 100 (rien à mesurer).
 
 ---
 
