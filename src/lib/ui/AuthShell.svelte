@@ -49,8 +49,8 @@
 			</div>
 
 			<div class="login-hero-quote">
-				« Mon loyer, mes courses, mon livret A — tout est rangé tout seul. »
-				<div class="login-hero-quote-author">Camille, utilisatrice depuis 8 mois</div>
+				« Mon loyer, mes courses, mon livret A »
+				<div class="login-hero-quote-author">Camille</div>
 			</div>
 		</div>
 	</div>

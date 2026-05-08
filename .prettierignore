@@ -7,7 +7,6 @@ bun.lockb
 
 # Miscellaneous
 /static/
-/Maquette/
 /.claude/
 /.svelte-kit/
 /build/
