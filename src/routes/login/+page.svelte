@@ -48,7 +48,6 @@
 
 <AuthShell>
 	<h1 class="login-h1">Bon retour</h1>
-	<p class="login-sub">Connecte-toi pour suivre tes dépenses selon la méthode 50/30/20.</p>
 
 	<form onsubmit={submit}>
 		<label class="field">
