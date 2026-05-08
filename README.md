@@ -19,6 +19,8 @@ A self-hosted personal finance tracker built around the **50/30/20** budgeting m
 
 > 🇫🇷 **The app UI is in French.** This README is in English so contributors can get started quickly; the product itself targets French-speaking users.
 
+<img width="2552" height="1620" alt="Login Page" src="https://github.com/user-attachments/assets/d737c009-2c07-49dd-a28d-f6ded6fd7224" />
+
 ## Why Budget?
 
 - **Variable income friendly** — budgets are derived from your actual monthly income, not a fixed reference number.
