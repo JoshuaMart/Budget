@@ -38,12 +38,6 @@ pnpm dev                      # http://localhost:5173
 
 Demo credentials (after `db:seed`): `demo@budget.local` / `Budget123!`
 
-## Requirements
-
-- [Bun](https://bun.sh) ≥ 1.3 — runtime
-- [Node.js](https://nodejs.org) ≥ 22 — toolchain
-- [pnpm](https://pnpm.io) ≥ 10 — package manager
-
 <details>
 <summary><strong>All scripts</strong></summary>
 
