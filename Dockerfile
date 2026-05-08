@@ -16,7 +16,7 @@ RUN bun install -g pnpm@${PNPM_VERSION}
 # Manifest layer first — invalidated only when deps change.
 # `--ignore-scripts` skips the prepare hook (husky / svelte-kit sync) which
 # isn't needed in a container; vite handles svelte-kit sync at build time.
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
@@ -34,7 +34,7 @@ WORKDIR /app
 ARG PNPM_VERSION
 RUN bun install -g pnpm@${PNPM_VERSION}
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # ----------------------------------------------------------------
