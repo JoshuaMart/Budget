@@ -17,37 +17,62 @@ export type EditableTx = {
 	incomeCategory: string | null;
 };
 
+// Subset of a recurring needed to prefill the modal in edit mode.
+export type EditableRec = {
+	id: string;
+	kind: AddTxMode;
+	amountCents: number; // stored positive
+	merchant: string;
+	accountId: string;
+	toAccountId: string | null;
+	envelopeId: string | null;
+	categoryId: string | null;
+	incomeCategory: string | null;
+	frequency: 'weekly' | 'monthly' | 'yearly';
+	nextDate: string;
+};
+
+type AddTxState = {
+	open: boolean;
+	defaultMode: AddTxMode;
+	editTx: EditableTx | null;
+	editRec: EditableRec | null;
+	recurringDefault: boolean;
+};
+
+const CLOSED: AddTxState = {
+	open: false,
+	defaultMode: 'expense',
+	editTx: null,
+	editRec: null,
+	recurringDefault: false
+};
+
 class ModalState {
-	addTx = $state<{
-		open: boolean;
-		defaultMode: AddTxMode;
-		editTx: EditableTx | null;
-		recurringDefault: boolean;
-	}>({
-		open: false,
-		defaultMode: 'expense',
-		editTx: null,
-		recurringDefault: false
-	});
+	addTx = $state<AddTxState>({ ...CLOSED });
 	accounts = $state<{ open: boolean }>({ open: false });
 	ratios = $state<{ open: boolean }>({ open: false });
 
 	openAddTx(defaultMode: AddTxMode = 'expense') {
-		this.addTx = { open: true, defaultMode, editTx: null, recurringDefault: false };
+		this.addTx = { ...CLOSED, open: true, defaultMode };
 	}
 
 	// Opens the same modal but pre-armed as a recurring payment (frequency
 	// selector visible), used by the "Nouveau récurrent" button.
 	openAddRecurring(defaultMode: AddTxMode = 'expense') {
-		this.addTx = { open: true, defaultMode, editTx: null, recurringDefault: true };
+		this.addTx = { ...CLOSED, open: true, defaultMode, recurringDefault: true };
 	}
 
 	openEditTx(tx: EditableTx) {
-		this.addTx = { open: true, defaultMode: tx.kind, editTx: tx, recurringDefault: false };
+		this.addTx = { ...CLOSED, open: true, defaultMode: tx.kind, editTx: tx };
+	}
+
+	openEditRec(rec: EditableRec) {
+		this.addTx = { ...CLOSED, open: true, defaultMode: rec.kind, editRec: rec };
 	}
 
 	closeAddTx() {
-		this.addTx = { open: false, defaultMode: 'expense', editTx: null, recurringDefault: false };
+		this.addTx = { ...CLOSED };
 	}
 
 	openAccounts() {

@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { type EnvelopeKey, toIsoDate } from '$lib/domain';
-	import { type EditableTx, modals } from '$lib/modals.svelte';
+	import { type EditableRec, type EditableTx, modals } from '$lib/modals.svelte';
 
 	import Icon from './Icon.svelte';
 	import Switch from './Switch.svelte';
@@ -16,6 +16,7 @@
 		accounts,
 		defaultMode,
 		editTx = null,
+		editRec = null,
 		recurringDefault = false
 	}: {
 		envelopes: { id: string; key: EnvelopeKey; label: string }[];
@@ -23,28 +24,36 @@
 		accounts: { id: string; label: string }[];
 		defaultMode: Mode;
 		editTx?: EditableTx | null;
+		editRec?: EditableRec | null;
 		recurringDefault?: boolean;
 	} = $props();
 
-	const isEdit = editTx !== null;
+	const isEditTx = editTx !== null;
+	const isEditRec = editRec !== null;
+	const isAnyEdit = isEditTx || isEditRec;
+	// Prefill source: a transaction edit, a recurring edit, or nothing (create).
+	const src = editTx ?? editRec;
 
-	// Recurring is offered only when creating (never when editing a one-off tx).
-	let isRecurring = $state(!isEdit && recurringDefault);
-	let frequency = $state<Frequency>('monthly');
+	// Recurring toggle is offered only when creating a brand-new entry. Editing
+	// a recurring keeps it on (and hides the toggle); editing a one-off tx keeps
+	// it off.
+	let isRecurring = $state(isEditRec || (!isEditTx && recurringDefault));
+	let frequency = $state<Frequency>(editRec?.frequency ?? 'monthly');
 
 	// Modal is mounted via {#if open} in the layout, so initial values from
 	// props are captured once per open — adequate for V1. In edit mode the
-	// stored signed amount is shown as a positive figure.
-	let mode = $state<Mode>(editTx?.kind ?? defaultMode);
+	// stored amount is shown as a positive figure.
+	let mode = $state<Mode>(src?.kind ?? defaultMode);
 
-	let amount = $state(editTx ? (Math.abs(editTx.amountCents) / 100).toFixed(2) : '');
-	let merchant = $state(editTx?.merchant ?? '');
-	let envelopeId = $state(editTx?.envelopeId ?? envelopes[0]?.id ?? '');
-	let categoryId = $state(editTx?.categoryId ?? '');
-	let accountId = $state(editTx?.accountId ?? accounts[0]?.id ?? '');
-	let toAccountId = $state(editTx?.toAccountId ?? accounts[1]?.id ?? accounts[0]?.id ?? '');
-	let date = $state(editTx?.date ?? toIsoDate(new Date()));
-	let incomeCategory = $state(editTx?.incomeCategory ?? '');
+	let amount = $state(src ? (Math.abs(src.amountCents) / 100).toFixed(2) : '');
+	let merchant = $state(src?.merchant ?? '');
+	let envelopeId = $state(src?.envelopeId ?? envelopes[0]?.id ?? '');
+	let categoryId = $state(src?.categoryId ?? '');
+	let accountId = $state(src?.accountId ?? accounts[0]?.id ?? '');
+	let toAccountId = $state(src?.toAccountId ?? accounts[1]?.id ?? accounts[0]?.id ?? '');
+	// For a recurring, the date field carries its next occurrence date.
+	let date = $state(editTx?.date ?? editRec?.nextDate ?? toIsoDate(new Date()));
+	let incomeCategory = $state(src?.incomeCategory ?? '');
 
 	const envelopeCats = $derived.by(() => {
 		const all = categories.filter((c) => c.envelopeId === envelopeId);
@@ -78,11 +87,13 @@
 	<form
 		class="modal"
 		method="POST"
-		action={isEdit
+		action={isEditTx
 			? '/transactions?/update'
-			: isRecurring
-				? '/recurring?/create'
-				: '/transactions?/create'}
+			: isEditRec
+				? '/recurring?/update'
+				: isRecurring
+					? '/recurring?/create'
+					: '/transactions?/create'}
 		style="position: relative;"
 		use:enhance={() =>
 			async ({ result, update }) => {
@@ -97,15 +108,28 @@
 		<button type="button" class="modal-close" onclick={close} aria-label="Fermer">
 			<Icon name="x" size={16} />
 		</button>
-		<h2>{isEdit ? 'Modifier' : isRecurring ? 'Nouveau récurrent' : 'Ajouter'}</h2>
+		<h2>
+			{#if isEditTx}
+				Modifier
+			{:else if isEditRec}
+				Modifier le récurrent
+			{:else if isRecurring}
+				Nouveau récurrent
+			{:else}
+				Ajouter
+			{/if}
+		</h2>
 		<p class="sub">
 			{isRecurring
 				? 'Charge ou revenu qui se répète automatiquement.'
 				: 'Dépense, transfert entre comptes ou revenu.'}
 		</p>
 
-		{#if isEdit}
+		{#if isEditTx}
 			<input type="hidden" name="txId" value={editTx?.id} />
+		{/if}
+		{#if isEditRec}
+			<input type="hidden" name="id" value={editRec?.id} />
 		{/if}
 		{#if isRecurring}
 			<input type="hidden" name="frequency" value={frequency} />
@@ -271,7 +295,7 @@
 			</label>
 		{/if}
 
-		{#if !isEdit}
+		{#if !isAnyEdit}
 			<div class="recurring-toggle">
 				<div class="info">
 					<div class="title">Paiement récurrent</div>
@@ -279,46 +303,55 @@
 				</div>
 				<Switch bind:on={isRecurring} title="Paiement récurrent" />
 			</div>
-			{#if isRecurring}
-				<label class="field">
-					<span>Fréquence</span>
-					<div class="modal-tabs" style="margin-bottom: 0;">
-						<button
-							type="button"
-							class="modal-tab"
-							class:active={frequency === 'weekly'}
-							onclick={() => (frequency = 'weekly')}
-						>
-							Hebdo
-						</button>
-						<button
-							type="button"
-							class="modal-tab"
-							class:active={frequency === 'monthly'}
-							onclick={() => (frequency = 'monthly')}
-						>
-							Mensuel
-						</button>
-						<button
-							type="button"
-							class="modal-tab"
-							class:active={frequency === 'yearly'}
-							onclick={() => (frequency = 'yearly')}
-						>
-							Annuel
-						</button>
-					</div>
-				</label>
-			{/if}
+		{/if}
+
+		{#if isRecurring}
+			<label class="field">
+				<span>Fréquence</span>
+				<div class="modal-tabs" style="margin-bottom: 0;">
+					<button
+						type="button"
+						class="modal-tab"
+						class:active={frequency === 'weekly'}
+						onclick={() => (frequency = 'weekly')}
+					>
+						Hebdo
+					</button>
+					<button
+						type="button"
+						class="modal-tab"
+						class:active={frequency === 'monthly'}
+						onclick={() => (frequency = 'monthly')}
+					>
+						Mensuel
+					</button>
+					<button
+						type="button"
+						class="modal-tab"
+						class:active={frequency === 'yearly'}
+						onclick={() => (frequency = 'yearly')}
+					>
+						Annuel
+					</button>
+				</div>
+			</label>
 		{/if}
 
 		<label class="field">
-			<span>{isRecurring ? 'Première échéance' : 'Date'}</span>
+			<span>
+				{#if isEditRec}
+					Prochaine échéance
+				{:else if isRecurring}
+					Première échéance
+				{:else}
+					Date
+				{/if}
+			</span>
 			<input name="date" type="date" bind:value={date} required />
 		</label>
 
-		<div class="modal-actions" class:modal-actions-split={isEdit}>
-			{#if isEdit}
+		<div class="modal-actions" class:modal-actions-split={isAnyEdit}>
+			{#if isEditTx}
 				<button
 					type="submit"
 					formaction="/transactions?/delete"
@@ -329,11 +362,22 @@
 				>
 					Supprimer
 				</button>
+			{:else if isEditRec}
+				<button
+					type="submit"
+					formaction="/recurring?/delete"
+					class="btn btn-danger"
+					onclick={(e) => {
+						if (!confirm('Supprimer ce paiement récurrent ?')) e.preventDefault();
+					}}
+				>
+					Supprimer
+				</button>
 			{/if}
 			<div class="modal-actions-right">
 				<button type="button" class="btn btn-ghost" onclick={close}>Annuler</button>
 				<button type="submit" class="btn btn-primary">
-					{#if isEdit}
+					{#if isAnyEdit}
 						Enregistrer
 					{:else if isRecurring}
 						Créer le récurrent

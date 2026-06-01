@@ -47,6 +47,24 @@
 		if (r.frequency === 'yearly') return 'Annuel';
 		return r.frequency;
 	}
+
+	type Rec = (typeof data.recurrings)[number];
+
+	function openEdit(r: Rec) {
+		modals.openEditRec({
+			id: r.id,
+			kind: r.kind,
+			amountCents: r.amountCents,
+			merchant: r.merchant,
+			accountId: r.accountId,
+			toAccountId: r.toAccountId,
+			envelopeId: r.envelopeId,
+			categoryId: r.categoryId,
+			incomeCategory: r.incomeCategory,
+			frequency: r.frequency,
+			nextDate: r.nextDate
+		});
+	}
 </script>
 
 <div class="topbar">
@@ -136,7 +154,20 @@
 		{@const cat = r.categoryId ? catById[r.categoryId] : null}
 		{@const isIncome = r.kind === 'income'}
 		{@const isTransfer = r.kind === 'transfer'}
-		<div class="rec-row {env ? `env-${env.key}` : ''}" class:inactive={!r.active}>
+		<div
+			class="rec-row {env ? `env-${env.key}` : ''}"
+			class:inactive={!r.active}
+			role="button"
+			tabindex="0"
+			title="Modifier le récurrent"
+			onclick={() => openEdit(r)}
+			onkeydown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					openEdit(r);
+				}
+			}}
+		>
 			<div class="rec-icon" class:income={isIncome}>{r.merchant.charAt(0)}</div>
 			<div>
 				<div class="rec-merchant">{r.merchant}</div>
@@ -161,7 +192,11 @@
 			<div class="rec-amount" class:income={isIncome}>
 				<Money cents={isIncome ? r.amountCents : -r.amountCents} signed />
 			</div>
-			<div style="display: flex; gap: 4px; align-items: center; justify-content: flex-end;">
+			<div
+				style="display: flex; gap: 4px; align-items: center; justify-content: flex-end;"
+				role="presentation"
+				onclick={(e) => e.stopPropagation()}
+			>
 				<form method="POST" action="?/toggle" use:enhance>
 					<input type="hidden" name="id" value={r.id} />
 					<button
