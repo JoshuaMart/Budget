@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { type EnvelopeKey, toIsoDate } from '$lib/domain';
-	import { modals } from '$lib/modals.svelte';
+	import { type EditableTx, modals } from '$lib/modals.svelte';
 
 	import Icon from './Icon.svelte';
 
@@ -12,26 +12,31 @@
 		envelopes,
 		categories,
 		accounts,
-		defaultMode
+		defaultMode,
+		editTx = null
 	}: {
 		envelopes: { id: string; key: EnvelopeKey; label: string }[];
 		categories: { id: string; envelopeId: string; label: string; isVirtual: boolean }[];
 		accounts: { id: string; label: string }[];
 		defaultMode: Mode;
+		editTx?: EditableTx | null;
 	} = $props();
 
-	// Modal is mounted via {#if open} in the layout, so initial values from
-	// props are captured once per open — adequate for V1.
-	let mode = $state<Mode>(defaultMode);
+	const isEdit = editTx !== null;
 
-	let amount = $state('');
-	let merchant = $state('');
-	let envelopeId = $state(envelopes[0]?.id ?? '');
-	let categoryId = $state('');
-	let accountId = $state(accounts[0]?.id ?? '');
-	let toAccountId = $state(accounts[1]?.id ?? accounts[0]?.id ?? '');
-	let date = $state(toIsoDate(new Date()));
-	let incomeCategory = $state('');
+	// Modal is mounted via {#if open} in the layout, so initial values from
+	// props are captured once per open — adequate for V1. In edit mode the
+	// stored signed amount is shown as a positive figure.
+	let mode = $state<Mode>(editTx?.kind ?? defaultMode);
+
+	let amount = $state(editTx ? (Math.abs(editTx.amountCents) / 100).toFixed(2) : '');
+	let merchant = $state(editTx?.merchant ?? '');
+	let envelopeId = $state(editTx?.envelopeId ?? envelopes[0]?.id ?? '');
+	let categoryId = $state(editTx?.categoryId ?? '');
+	let accountId = $state(editTx?.accountId ?? accounts[0]?.id ?? '');
+	let toAccountId = $state(editTx?.toAccountId ?? accounts[1]?.id ?? accounts[0]?.id ?? '');
+	let date = $state(editTx?.date ?? toIsoDate(new Date()));
+	let incomeCategory = $state(editTx?.incomeCategory ?? '');
 
 	const envelopeCats = $derived.by(() => {
 		const all = categories.filter((c) => c.envelopeId === envelopeId);
@@ -65,7 +70,7 @@
 	<form
 		class="modal"
 		method="POST"
-		action="/transactions?/create"
+		action={isEdit ? '/transactions?/update' : '/transactions?/create'}
 		style="position: relative;"
 		use:enhance={() =>
 			async ({ result, update }) => {
@@ -80,8 +85,12 @@
 		<button type="button" class="modal-close" onclick={close} aria-label="Fermer">
 			<Icon name="x" size={16} />
 		</button>
-		<h2>Ajouter</h2>
+		<h2>{isEdit ? 'Modifier' : 'Ajouter'}</h2>
 		<p class="sub">Dépense, transfert entre comptes ou revenu.</p>
+
+		{#if isEdit}
+			<input type="hidden" name="txId" value={editTx?.id} />
+		{/if}
 
 		<input type="hidden" name="kind" value={mode} />
 
@@ -248,11 +257,25 @@
 			<input name="date" type="date" bind:value={date} required />
 		</label>
 
-		<div class="modal-actions">
-			<button type="button" class="btn btn-ghost" onclick={close}>Annuler</button>
-			<button type="submit" class="btn btn-primary">
-				{mode === 'transfer' ? 'Effectuer le transfert' : 'Ajouter'}
-			</button>
+		<div class="modal-actions" class:modal-actions-split={isEdit}>
+			{#if isEdit}
+				<button
+					type="submit"
+					formaction="/transactions?/delete"
+					class="btn btn-danger"
+					onclick={(e) => {
+						if (!confirm('Supprimer cette transaction ?')) e.preventDefault();
+					}}
+				>
+					Supprimer
+				</button>
+			{/if}
+			<div class="modal-actions-right">
+				<button type="button" class="btn btn-ghost" onclick={close}>Annuler</button>
+				<button type="submit" class="btn btn-primary">
+					{isEdit ? 'Enregistrer' : mode === 'transfer' ? 'Effectuer le transfert' : 'Ajouter'}
+				</button>
+			</div>
 		</div>
 	</form>
 </div>

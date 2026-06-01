@@ -41,6 +41,7 @@
 			categories={data.categories}
 			accounts={data.accounts}
 			defaultMode={modals.addTx.defaultMode}
+			editTx={modals.addTx.editTx}
 		/>
 	{/if}
 

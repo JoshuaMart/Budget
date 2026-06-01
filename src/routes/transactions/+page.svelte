@@ -60,6 +60,21 @@
 		if (!data.envFilter) return null;
 		return data.envelopes.find((e) => e.id === data.envFilter)?.key ?? null;
 	});
+
+	function openEdit(t: Tx) {
+		modals.openEditTx({
+			id: t.id,
+			kind: t.kind,
+			amountCents: t.amountCents,
+			merchant: t.merchant,
+			date: t.date,
+			accountId: t.accountId,
+			toAccountId: t.toAccountId,
+			envelopeId: t.envelopeId,
+			categoryId: t.categoryId,
+			incomeCategory: t.incomeCategory
+		});
+	}
 </script>
 
 <div class="topbar">
@@ -126,7 +141,19 @@
 			{@const toAcc = t.toAccountId ? accById[t.toAccountId] : null}
 			{@const isTransfer = t.kind === 'transfer'}
 			{@const isIncome = t.kind === 'income'}
-			<div class="tx-row env-{env?.key ?? 'necessities'}">
+			<div
+				class="tx-row env-{env?.key ?? 'necessities'}"
+				role="button"
+				tabindex="0"
+				title="Modifier la transaction"
+				onclick={() => openEdit(t)}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						openEdit(t);
+					}
+				}}
+			>
 				<div class="tx-icon">{isTransfer ? '↗' : t.merchant.charAt(0).toUpperCase()}</div>
 				<div>
 					<div class="tx-merchant">

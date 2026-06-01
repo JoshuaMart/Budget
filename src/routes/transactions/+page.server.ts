@@ -7,7 +7,8 @@ import { listEnvelopes } from '$lib/server/services/envelopes.service';
 import {
 	createTransaction,
 	deleteTransaction,
-	listTransactions
+	listTransactions,
+	updateTransaction
 } from '$lib/server/services/transactions.service';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -39,46 +40,66 @@ function parseAmountToCents(raw: string | undefined): number | null {
 	return Math.round(n * 100);
 }
 
+type ParseResult =
+	| { ok: true; data: import('$lib/server/schemas').TransactionInput }
+	| { ok: false; error: string };
+
+function parseTransactionForm(data: FormData): ParseResult {
+	const amountCents = parseAmountToCents(data.get('amount')?.toString());
+	if (!amountCents) return { ok: false, error: 'Montant invalide' };
+
+	const kind = data.get('kind')?.toString() ?? 'expense';
+	const base = {
+		kind,
+		amountCents,
+		date: data.get('date')?.toString() ?? '',
+		merchant: data.get('merchant')?.toString() ?? '',
+		accountId: data.get('accountId')?.toString() ?? ''
+	};
+	let body: unknown;
+	if (kind === 'transfer') {
+		body = {
+			...base,
+			toAccountId: data.get('toAccountId')?.toString() ?? '',
+			envelopeId: data.get('envelopeId')?.toString() ?? '',
+			categoryId: data.get('categoryId')?.toString() || undefined
+		};
+	} else if (kind === 'income') {
+		body = {
+			...base,
+			incomeCategory: data.get('incomeCategory')?.toString() || undefined
+		};
+	} else {
+		body = {
+			...base,
+			envelopeId: data.get('envelopeId')?.toString() ?? '',
+			categoryId: data.get('categoryId')?.toString() || undefined
+		};
+	}
+	const parsed = transactionInput.safeParse(body);
+	if (!parsed.success) {
+		return { ok: false, error: parsed.error.issues[0]?.message ?? 'Données invalides' };
+	}
+	return { ok: true, data: parsed.data };
+}
+
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
 		if (!locals.user) return fail(401);
-		const data = await request.formData();
-		const amountCents = parseAmountToCents(data.get('amount')?.toString());
-		if (!amountCents) return fail(400, { error: 'Montant invalide' });
+		const result = parseTransactionForm(await request.formData());
+		if (!result.ok) return fail(400, { error: result.error });
+		createTransaction(locals.user.id, result.data);
+		return { success: true };
+	},
 
-		const kind = data.get('kind')?.toString() ?? 'expense';
-		const base = {
-			kind,
-			amountCents,
-			date: data.get('date')?.toString() ?? '',
-			merchant: data.get('merchant')?.toString() ?? '',
-			accountId: data.get('accountId')?.toString() ?? ''
-		};
-		let body: unknown;
-		if (kind === 'transfer') {
-			body = {
-				...base,
-				toAccountId: data.get('toAccountId')?.toString() ?? '',
-				envelopeId: data.get('envelopeId')?.toString() ?? '',
-				categoryId: data.get('categoryId')?.toString() || undefined
-			};
-		} else if (kind === 'income') {
-			body = {
-				...base,
-				incomeCategory: data.get('incomeCategory')?.toString() || undefined
-			};
-		} else {
-			body = {
-				...base,
-				envelopeId: data.get('envelopeId')?.toString() ?? '',
-				categoryId: data.get('categoryId')?.toString() || undefined
-			};
-		}
-		const parsed = transactionInput.safeParse(body);
-		if (!parsed.success) {
-			return fail(400, { error: parsed.error.issues[0]?.message ?? 'Données invalides' });
-		}
-		createTransaction(locals.user.id, parsed.data);
+	update: async ({ request, locals }) => {
+		if (!locals.user) return fail(401);
+		const data = await request.formData();
+		const txId = data.get('txId')?.toString();
+		if (!txId) return fail(400, { error: 'Identifiant manquant' });
+		const result = parseTransactionForm(data);
+		if (!result.ok) return fail(400, { error: result.error });
+		updateTransaction(locals.user.id, txId, result.data);
 		return { success: true };
 	},
 
