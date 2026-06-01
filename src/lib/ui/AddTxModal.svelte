@@ -5,24 +5,32 @@
 	import { type EditableTx, modals } from '$lib/modals.svelte';
 
 	import Icon from './Icon.svelte';
+	import Switch from './Switch.svelte';
 
 	type Mode = 'expense' | 'transfer' | 'income';
+	type Frequency = 'weekly' | 'monthly' | 'yearly';
 
 	let {
 		envelopes,
 		categories,
 		accounts,
 		defaultMode,
-		editTx = null
+		editTx = null,
+		recurringDefault = false
 	}: {
 		envelopes: { id: string; key: EnvelopeKey; label: string }[];
 		categories: { id: string; envelopeId: string; label: string; isVirtual: boolean }[];
 		accounts: { id: string; label: string }[];
 		defaultMode: Mode;
 		editTx?: EditableTx | null;
+		recurringDefault?: boolean;
 	} = $props();
 
 	const isEdit = editTx !== null;
+
+	// Recurring is offered only when creating (never when editing a one-off tx).
+	let isRecurring = $state(!isEdit && recurringDefault);
+	let frequency = $state<Frequency>('monthly');
 
 	// Modal is mounted via {#if open} in the layout, so initial values from
 	// props are captured once per open — adequate for V1. In edit mode the
@@ -70,7 +78,11 @@
 	<form
 		class="modal"
 		method="POST"
-		action={isEdit ? '/transactions?/update' : '/transactions?/create'}
+		action={isEdit
+			? '/transactions?/update'
+			: isRecurring
+				? '/recurring?/create'
+				: '/transactions?/create'}
 		style="position: relative;"
 		use:enhance={() =>
 			async ({ result, update }) => {
@@ -85,11 +97,18 @@
 		<button type="button" class="modal-close" onclick={close} aria-label="Fermer">
 			<Icon name="x" size={16} />
 		</button>
-		<h2>{isEdit ? 'Modifier' : 'Ajouter'}</h2>
-		<p class="sub">Dépense, transfert entre comptes ou revenu.</p>
+		<h2>{isEdit ? 'Modifier' : isRecurring ? 'Nouveau récurrent' : 'Ajouter'}</h2>
+		<p class="sub">
+			{isRecurring
+				? 'Charge ou revenu qui se répète automatiquement.'
+				: 'Dépense, transfert entre comptes ou revenu.'}
+		</p>
 
 		{#if isEdit}
 			<input type="hidden" name="txId" value={editTx?.id} />
+		{/if}
+		{#if isRecurring}
+			<input type="hidden" name="frequency" value={frequency} />
 		{/if}
 
 		<input type="hidden" name="kind" value={mode} />
@@ -252,8 +271,49 @@
 			</label>
 		{/if}
 
+		{#if !isEdit}
+			<div class="recurring-toggle">
+				<div class="info">
+					<div class="title">Paiement récurrent</div>
+					<div class="desc">Se répète automatiquement à chaque échéance.</div>
+				</div>
+				<Switch bind:on={isRecurring} title="Paiement récurrent" />
+			</div>
+			{#if isRecurring}
+				<label class="field">
+					<span>Fréquence</span>
+					<div class="modal-tabs" style="margin-bottom: 0;">
+						<button
+							type="button"
+							class="modal-tab"
+							class:active={frequency === 'weekly'}
+							onclick={() => (frequency = 'weekly')}
+						>
+							Hebdo
+						</button>
+						<button
+							type="button"
+							class="modal-tab"
+							class:active={frequency === 'monthly'}
+							onclick={() => (frequency = 'monthly')}
+						>
+							Mensuel
+						</button>
+						<button
+							type="button"
+							class="modal-tab"
+							class:active={frequency === 'yearly'}
+							onclick={() => (frequency = 'yearly')}
+						>
+							Annuel
+						</button>
+					</div>
+				</label>
+			{/if}
+		{/if}
+
 		<label class="field">
-			<span>Date</span>
+			<span>{isRecurring ? 'Première échéance' : 'Date'}</span>
 			<input name="date" type="date" bind:value={date} required />
 		</label>
 
@@ -273,7 +333,15 @@
 			<div class="modal-actions-right">
 				<button type="button" class="btn btn-ghost" onclick={close}>Annuler</button>
 				<button type="submit" class="btn btn-primary">
-					{isEdit ? 'Enregistrer' : mode === 'transfer' ? 'Effectuer le transfert' : 'Ajouter'}
+					{#if isEdit}
+						Enregistrer
+					{:else if isRecurring}
+						Créer le récurrent
+					{:else if mode === 'transfer'}
+						Effectuer le transfert
+					{:else}
+						Ajouter
+					{/if}
 				</button>
 			</div>
 		</div>

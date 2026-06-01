@@ -58,7 +58,11 @@
 		</div>
 	</div>
 	<div class="topbar-actions">
-		<button type="button" class="btn btn-primary" onclick={() => modals.openAddTx('expense')}>
+		<button
+			type="button"
+			class="btn btn-primary"
+			onclick={() => modals.openAddRecurring('expense')}
+		>
 			<Icon name="plus" size={14} /> Nouveau récurrent
 		</button>
 	</div>

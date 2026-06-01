@@ -42,6 +42,7 @@
 			accounts={data.accounts}
 			defaultMode={modals.addTx.defaultMode}
 			editTx={modals.addTx.editTx}
+			recurringDefault={modals.addTx.recurringDefault}
 		/>
 	{/if}
 

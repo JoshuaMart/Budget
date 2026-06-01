@@ -18,24 +18,36 @@ export type EditableTx = {
 };
 
 class ModalState {
-	addTx = $state<{ open: boolean; defaultMode: AddTxMode; editTx: EditableTx | null }>({
+	addTx = $state<{
+		open: boolean;
+		defaultMode: AddTxMode;
+		editTx: EditableTx | null;
+		recurringDefault: boolean;
+	}>({
 		open: false,
 		defaultMode: 'expense',
-		editTx: null
+		editTx: null,
+		recurringDefault: false
 	});
 	accounts = $state<{ open: boolean }>({ open: false });
 	ratios = $state<{ open: boolean }>({ open: false });
 
 	openAddTx(defaultMode: AddTxMode = 'expense') {
-		this.addTx = { open: true, defaultMode, editTx: null };
+		this.addTx = { open: true, defaultMode, editTx: null, recurringDefault: false };
+	}
+
+	// Opens the same modal but pre-armed as a recurring payment (frequency
+	// selector visible), used by the "Nouveau récurrent" button.
+	openAddRecurring(defaultMode: AddTxMode = 'expense') {
+		this.addTx = { open: true, defaultMode, editTx: null, recurringDefault: true };
 	}
 
 	openEditTx(tx: EditableTx) {
-		this.addTx = { open: true, defaultMode: tx.kind, editTx: tx };
+		this.addTx = { open: true, defaultMode: tx.kind, editTx: tx, recurringDefault: false };
 	}
 
 	closeAddTx() {
-		this.addTx = { open: false, defaultMode: 'expense', editTx: null };
+		this.addTx = { open: false, defaultMode: 'expense', editTx: null, recurringDefault: false };
 	}
 
 	openAccounts() {
