@@ -1032,6 +1032,10 @@ textarea {
 	grid-template-columns: repeat(3, 1fr);
 	gap: 8px;
 }
+/* Transfers add a fourth "Aucune" tile: 2x2 reads better than 3 + 1. */
+.envelope-radio.with-none {
+	grid-template-columns: repeat(2, 1fr);
+}
 .envelope-radio-tile {
 	padding: 12px;
 	background: var(--bg-sunk);
@@ -1176,6 +1180,12 @@ textarea {
 	--env: var(--inv);
 	--env-soft: var(--inv-soft);
 	--env-mid: var(--inv-mid);
+}
+/* No envelope: income, and transfers that are plain cash movements. */
+.env-none {
+	--env: var(--text-muted);
+	--env-soft: var(--bg-sunk);
+	--env-mid: var(--border);
 }
 
 /* Tweaks button override (the panel itself comes from starter) */

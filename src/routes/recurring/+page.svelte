@@ -26,8 +26,13 @@
 	const totalIncome = $derived(
 		active.filter((r) => r.kind === 'income').reduce((s, r) => s + r.amountCents, 0)
 	);
+	// A recurring transfer with no envelope only shuffles cash between the
+	// user's own accounts: it is not a fixed charge and must not eat into the
+	// net monthly balance below.
+	const isFixedCharge = (r: (typeof data.recurrings)[number]) =>
+		r.kind !== 'income' && (r.kind !== 'transfer' || !!r.envelopeId);
 	const totalExpenses = $derived(
-		active.filter((r) => r.kind !== 'income').reduce((s, r) => s + r.amountCents, 0)
+		active.filter(isFixedCharge).reduce((s, r) => s + r.amountCents, 0)
 	);
 	const byEnv = $derived.by(() => {
 		const m: Record<EnvelopeKey, number> = { necessities: 0, wants: 0, investments: 0 };

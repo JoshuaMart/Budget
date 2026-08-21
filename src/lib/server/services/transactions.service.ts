@@ -51,8 +51,9 @@ export function createTransaction(userId: string, input: TransactionInput) {
 	};
 	if (input.kind === 'transfer') {
 		base.toAccountId = input.toAccountId;
-		base.envelopeId = input.envelopeId;
-		base.categoryId = input.categoryId ?? null;
+		base.envelopeId = input.envelopeId ?? null;
+		// A category without an envelope would be an orphan tag.
+		base.categoryId = base.envelopeId ? (input.categoryId ?? null) : null;
 	} else if (input.kind === 'expense') {
 		base.envelopeId = input.envelopeId;
 		base.categoryId = input.categoryId ?? null;
@@ -67,6 +68,8 @@ export function createTransaction(userId: string, input: TransactionInput) {
 
 export function updateTransaction(userId: string, txId: string, input: TransactionInput) {
 	const signedAmount = input.kind === 'income' ? input.amountCents : -input.amountCents;
+	// Income never carries an envelope; a transfer may legitimately have none.
+	const envelopeId = input.kind === 'income' ? null : (input.envelopeId ?? null);
 	const patch = {
 		date: input.date,
 		merchant: input.merchant,
@@ -74,8 +77,8 @@ export function updateTransaction(userId: string, txId: string, input: Transacti
 		accountId: input.accountId,
 		kind: input.kind,
 		toAccountId: input.kind === 'transfer' ? input.toAccountId : null,
-		envelopeId: input.kind === 'income' ? null : input.envelopeId,
-		categoryId: input.kind === 'income' ? null : (input.categoryId ?? null),
+		envelopeId,
+		categoryId: input.kind === 'income' || !envelopeId ? null : (input.categoryId ?? null),
 		incomeCategory: input.kind === 'income' ? (input.incomeCategory ?? null) : null
 	};
 	db.update(transaction)

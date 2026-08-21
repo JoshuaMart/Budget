@@ -14,6 +14,10 @@ const expenseInput = z.object({
 	categoryId: z.string().min(1).nullable().optional()
 });
 
+// A transfer between the user's own accounts moves cash without spending it,
+// so it carries no envelope by default. An envelope is opted into only when
+// the transfer IS the budget act (compte courant → Livret A, DCA…), which is
+// how the "Investissements" envelope gets filled under 50/30/20.
 const transferInput = z.object({
 	kind: z.literal('transfer'),
 	date: isoDate,
@@ -21,7 +25,7 @@ const transferInput = z.object({
 	amountCents: positiveCents,
 	accountId: z.string().min(1),
 	toAccountId: z.string().min(1),
-	envelopeId: z.string().min(1),
+	envelopeId: z.string().min(1).nullable().optional(),
 	categoryId: z.string().min(1).nullable().optional()
 });
 

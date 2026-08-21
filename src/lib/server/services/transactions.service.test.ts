@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { accountBalance, monthSummary } from '$lib/domain';
+
 import { db } from '../db/client';
 import { user } from '../db/schema';
 import { initUserData } from '../initUserData';
@@ -30,6 +32,7 @@ function bootstrap() {
 	const sorties = categories.find((c) => c.label === 'Sorties et Restaurants')!;
 	return {
 		userId,
+		ratios: { necessities: 50, wants: 30, investments: 20 },
 		envelopes,
 		categories,
 		accounts,
@@ -82,6 +85,62 @@ describe('transactions.service', () => {
 		});
 		expect(transfer.amountCents).toBe(-20000);
 		expect(transfer.toAccountId).toBe(ctx.epargne.id);
+	});
+
+	it('keeps a transfer with no envelope out of the budget but moves the cash', () => {
+		const ctx = bootstrap();
+
+		createTransaction(ctx.userId, {
+			kind: 'income',
+			date: '2026-05-01',
+			merchant: 'Salaire',
+			amountCents: 200000,
+			accountId: ctx.courant.id,
+			incomeCategory: 'salary'
+		});
+		const transfer = createTransaction(ctx.userId, {
+			kind: 'transfer',
+			date: '2026-05-10',
+			merchant: 'Vers Revolut',
+			amountCents: 20000,
+			accountId: ctx.courant.id,
+			toAccountId: ctx.epargne.id,
+			// A category without an envelope is meaningless and gets dropped.
+			categoryId: ctx.logement.id
+		});
+		expect(transfer.envelopeId).toBeNull();
+		expect(transfer.categoryId).toBeNull();
+
+		const txs = listTransactions(ctx.userId);
+		const summary = monthSummary(txs, ctx.envelopes, ctx.ratios, { year: 2026, month: 4 });
+		expect(summary.totalSpent).toBe(0);
+		expect(summary.byEnvelope.necessities.spent).toBe(0);
+
+		// The money still left the current account for the savings one.
+		expect(accountBalance(ctx.courant, txs)).toBe(180000);
+		expect(accountBalance(ctx.epargne, txs)).toBe(20000);
+	});
+
+	it('counts a transfer as spending when an envelope is chosen', () => {
+		const ctx = bootstrap();
+
+		const invEnv = ctx.envelopes.find((e) => e.key === 'investments')!;
+		createTransaction(ctx.userId, {
+			kind: 'transfer',
+			date: '2026-05-10',
+			merchant: 'DCA Livret A',
+			amountCents: 20000,
+			accountId: ctx.courant.id,
+			toAccountId: ctx.epargne.id,
+			envelopeId: invEnv.id
+		});
+
+		const summary = monthSummary(listTransactions(ctx.userId), ctx.envelopes, ctx.ratios, {
+			year: 2026,
+			month: 4
+		});
+		expect(summary.byEnvelope.investments.spent).toBe(20000);
+		expect(summary.totalSpent).toBe(20000);
 	});
 
 	it('listTransactions filters by month, envelope and merchant search', () => {

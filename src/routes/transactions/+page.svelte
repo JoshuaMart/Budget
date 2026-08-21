@@ -142,7 +142,7 @@
 			{@const isTransfer = t.kind === 'transfer'}
 			{@const isIncome = t.kind === 'income'}
 			<div
-				class="tx-row env-{env?.key ?? 'necessities'}"
+				class="tx-row {env ? `env-${env.key}` : 'env-none'}"
 				role="button"
 				tabindex="0"
 				title="Modifier la transaction"
@@ -184,13 +184,19 @@
 							<span class="tx-envelope-tag-dot"></span>
 							{env.label}
 						</span>
-					{:else}
+					{:else if isIncome}
 						<span
 							class="tx-envelope-tag"
 							style="background: oklch(0.95 0.04 155); color: oklch(0.45 0.10 155);"
 						>
 							<span class="tx-envelope-tag-dot" style="background: oklch(0.45 0.10 155);"></span>
 							Revenu
+						</span>
+					{:else}
+						<!-- Transfer between own accounts: outside the budget on purpose. -->
+						<span class="tx-envelope-tag">
+							<span class="tx-envelope-tag-dot"></span>
+							Non budgété
 						</span>
 					{/if}
 				</div>

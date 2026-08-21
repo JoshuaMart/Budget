@@ -88,11 +88,11 @@ Le revenu mensuel net est réparti en trois enveloppes dont le pourcentage est p
 
 Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 
-| Nature                     | Effet                                                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dépense** (`expense`)    | Débite un compte, attribuée à une enveloppe + sous-catégorie                                                                          |
-| **Revenu** (`income`)      | Crédite un compte, sans enveloppe. Peut porter une **catégorie de revenu** (ex. `salary`, `freelance`, `autre`)                       |
-| **Transfert** (`transfer`) | Débite le compte source et crédite le compte cible. Peut être attribué à une enveloppe (ex. virement vers Livret A → Investissements) |
+| Nature                     | Effet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dépense** (`expense`)    | Débite un compte, attribuée à une enveloppe + sous-catégorie                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Revenu** (`income`)      | Crédite un compte, sans enveloppe. Peut porter une **catégorie de revenu** (ex. `salary`, `freelance`, `autre`)                                                                                                                                                                                                                                                                                                                                                                               |
+| **Transfert** (`transfer`) | Débite le compte source et crédite le compte cible. **Sans enveloppe par défaut** : un mouvement entre ses propres comptes ne fait pas sortir d'argent du patrimoine, il ne doit donc pas être compté comme une dépense. Une enveloppe est attribuée uniquement quand le virement **est** l'acte budgétaire (Compte courant → Livret A, DCA → Investissements). Règle : un seul point de reconnaissance par euro, sinon la dépense est comptée deux fois (au virement, puis au paiement réel) |
 
 **Champs d'une transaction :**
 
@@ -102,8 +102,8 @@ Une transaction représente un mouvement d'argent. Trois natures (`kind`) :
 - `amount` (montant, négatif pour les dépenses, positif pour les revenus)
 - `account` (compte source)
 - `toAccount` (compte cible, transferts uniquement)
-- `envelope` (`necessities` | `wants` | `investments` | `null` pour les revenus)
-- `category` (id de la sous-catégorie, `null` pour les revenus)
+- `envelope` (`necessities` | `wants` | `investments` | `null` pour les revenus et les transferts neutres)
+- `category` (id de la sous-catégorie, `null` pour les revenus et pour toute transaction sans enveloppe)
 - `incomeCategory` (revenus uniquement : `salary` | `freelance` | `autre` | …, extensible par l'utilisateur)
 - `kind` (`expense` | `income` | `transfer`, défaut `expense`)
 - `recurringId` (lien vers un paiement récurrent, optionnel)
@@ -174,7 +174,7 @@ Aperçu mensuel :
 ### 3.4 Récurrents
 
 - Topbar : nombre d'actifs + total des charges fixes mensuelles.
-- Bloc résumé : engagements mensuels par enveloppe + total.
+- Bloc résumé : engagements mensuels par enveloppe + total. Un transfert récurrent sans enveloppe (ex. approvisionnement mensuel d'un compte secondaire) n'est pas une charge fixe et n'entre pas dans ce total.
 - Bloc « Solde net mensuel » : `salaire mensuel − charges fixes` (le salaire est identifié comme un revenu récurrent dont `incomeCategory == "salary"`).
 - Liste : tous les récurrents (triés par montant décroissant), avec libellé, fréquence, prochaine date, compte, montant signé, **toggle actif/inactif**.
 
@@ -206,7 +206,7 @@ Aperçu mensuel :
 
 - **Revenu du mois (`monthlyIncome`)** = somme des transactions `kind == "income"` du mois courant. Le revenu est **variable d'un mois à l'autre** ; il n'y a pas de revenu de référence figé.
 - **Budget d'une enveloppe** = `monthlyIncome × ratio / 100` (recalculé dès qu'un revenu est ajouté/modifié sur le mois).
-- **Dépensé d'une enveloppe (mois courant)** = somme des `|amount|` des transactions du mois où `envelope == enveloppe.id` et `kind != "income"`.
+- **Dépensé d'une enveloppe (mois courant)** = somme des `|amount|` des transactions du mois où `envelope == enveloppe.id` et `kind != "income"`. Les transferts sans enveloppe en sont donc naturellement exclus.
 - **Reste d'une enveloppe** = `budget − dépensé`. Si négatif → dépassement (UI rouge).
 - **Reste à allouer** = `monthlyIncome − totalSpent`.
 - **Solde courant d'un compte** = `initial + Σ(transactions du compte)` (les transferts débitent le compte source et créditent le compte cible).

@@ -43,11 +43,16 @@
 	// Modal is mounted via {#if open} in the layout, so initial values from
 	// props are captured once per open — adequate for V1. In edit mode the
 	// stored amount is shown as a positive figure.
-	let mode = $state<Mode>(src?.kind ?? defaultMode);
+	const initialMode: Mode = src?.kind ?? defaultMode;
+	let mode = $state<Mode>(initialMode);
 
 	let amount = $state(src ? (Math.abs(src.amountCents) / 100).toFixed(2) : '');
 	let merchant = $state(src?.merchant ?? '');
-	let envelopeId = $state(src?.envelopeId ?? envelopes[0]?.id ?? '');
+	// A transfer between own accounts is a cash movement, not a spend: no
+	// envelope by default. An expense always lands in one.
+	let envelopeId = $state(
+		src ? (src.envelopeId ?? '') : initialMode === 'transfer' ? '' : (envelopes[0]?.id ?? '')
+	);
 	let categoryId = $state(src?.categoryId ?? '');
 	let accountId = $state(src?.accountId ?? accounts[0]?.id ?? '');
 	let toAccountId = $state(src?.toAccountId ?? accounts[1]?.id ?? accounts[0]?.id ?? '');
@@ -65,6 +70,12 @@
 			categoryId = envelopeCats[0]?.id ?? '';
 		}
 	});
+
+	function setMode(next: Mode) {
+		if (next === 'transfer' && mode !== 'transfer') envelopeId = '';
+		if (next === 'expense' && !envelopeId) envelopeId = envelopes[0]?.id ?? '';
+		mode = next;
+	}
 
 	function close() {
 		modals.closeAddTx();
@@ -142,7 +153,7 @@
 				type="button"
 				class="modal-tab"
 				class:active={mode === 'expense'}
-				onclick={() => (mode = 'expense')}
+				onclick={() => setMode('expense')}
 			>
 				Dépense
 			</button>
@@ -150,7 +161,7 @@
 				type="button"
 				class="modal-tab"
 				class:active={mode === 'transfer'}
-				onclick={() => (mode = 'transfer')}
+				onclick={() => setMode('transfer')}
 			>
 				Transfert
 			</button>
@@ -158,7 +169,7 @@
 				type="button"
 				class="modal-tab"
 				class:active={mode === 'income'}
-				onclick={() => (mode = 'income')}
+				onclick={() => setMode('income')}
 			>
 				Revenu
 			</button>
@@ -222,11 +233,26 @@
 					Enveloppe
 					{#if mode === 'transfer'}
 						<span style="text-transform: none; font-weight: 400; color: var(--text-subtle);">
-							— pour la classification budgétaire
+							— seulement si ce transfert est un acte d'épargne
 						</span>
 					{/if}
 				</span>
-				<div class="envelope-radio">
+				<div class="envelope-radio" class:with-none={mode === 'transfer'}>
+					{#if mode === 'transfer'}
+						<button
+							type="button"
+							class="envelope-radio-tile env-none"
+							class:selected={envelopeId === ''}
+							onclick={() => (envelopeId = '')}
+						>
+							<span class="envelope-radio-name">
+								<span style="width: 8px; height: 8px; border-radius: 50%; background: var(--env);"
+								></span>
+								Aucune
+							</span>
+							<span class="envelope-radio-meta">simple mouvement d'argent</span>
+						</button>
+					{/if}
 					{#each envelopes as env (env.id)}
 						<button
 							type="button"
@@ -248,30 +274,34 @@
 				<input type="hidden" name="envelopeId" value={envelopeId} />
 			</label>
 
-			<div
-				style="display: grid; grid-template-columns: {mode === 'transfer'
-					? '1fr'
-					: '1fr 1fr'}; gap: 10px;"
-			>
-				<label class="field">
-					<span>Catégorie</span>
-					<select name="categoryId" bind:value={categoryId}>
-						{#each envelopeCats as c (c.id)}
-							<option value={c.id}>{c.label}</option>
-						{/each}
-					</select>
-				</label>
-				{#if mode !== 'transfer'}
-					<label class="field">
-						<span>Compte</span>
-						<select name="accountId" bind:value={accountId}>
-							{#each accounts as a (a.id)}
-								<option value={a.id}>{a.label}</option>
-							{/each}
-						</select>
-					</label>
-				{/if}
-			</div>
+			{#if envelopeId || mode !== 'transfer'}
+				<div
+					style="display: grid; grid-template-columns: {mode === 'transfer'
+						? '1fr'
+						: '1fr 1fr'}; gap: 10px;"
+				>
+					{#if envelopeId}
+						<label class="field">
+							<span>Catégorie</span>
+							<select name="categoryId" bind:value={categoryId}>
+								{#each envelopeCats as c (c.id)}
+									<option value={c.id}>{c.label}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+					{#if mode !== 'transfer'}
+						<label class="field">
+							<span>Compte</span>
+							<select name="accountId" bind:value={accountId}>
+								{#each accounts as a (a.id)}
+									<option value={a.id}>{a.label}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 
 		{#if mode === 'income'}

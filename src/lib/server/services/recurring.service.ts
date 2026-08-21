@@ -6,6 +6,21 @@ import { db } from '../db/client';
 import { recurring, transaction } from '../db/schema';
 import type { RecurringInput } from '../schemas';
 
+/**
+ * Income never carries an envelope; a transfer only carries one when it is
+ * itself the budget act (compte courant → Livret A). A plain cash movement
+ * between own accounts stays un-enveloped so it is not counted as spending.
+ */
+function envelopeIdFor(input: RecurringInput): string | null {
+	return input.kind === 'income' ? null : (input.envelopeId ?? null);
+}
+
+/** A category is only meaningful under an envelope. */
+function categoryIdFor(input: RecurringInput): string | null {
+	if (input.kind === 'income' || !envelopeIdFor(input)) return null;
+	return input.categoryId ?? null;
+}
+
 export function listRecurrings(userId: string) {
 	return db.select().from(recurring).where(eq(recurring.userId, userId)).all();
 }
@@ -19,8 +34,8 @@ export function createRecurring(userId: string, input: RecurringInput) {
 		dayOfMonth: input.dayOfMonth ?? null,
 		accountId: input.accountId,
 		toAccountId: input.kind === 'transfer' ? input.toAccountId : null,
-		envelopeId: input.kind === 'income' ? null : input.envelopeId,
-		categoryId: input.kind === 'income' ? null : (input.categoryId ?? null),
+		envelopeId: envelopeIdFor(input),
+		categoryId: categoryIdFor(input),
 		incomeCategory: input.kind === 'income' ? (input.incomeCategory ?? null) : null,
 		kind: input.kind,
 		nextDate: input.nextDate,
@@ -39,8 +54,8 @@ export function updateRecurring(userId: string, recId: string, input: RecurringI
 		dayOfMonth: input.dayOfMonth ?? null,
 		accountId: input.accountId,
 		toAccountId: input.kind === 'transfer' ? input.toAccountId : null,
-		envelopeId: input.kind === 'income' ? null : input.envelopeId,
-		categoryId: input.kind === 'income' ? null : (input.categoryId ?? null),
+		envelopeId: envelopeIdFor(input),
+		categoryId: categoryIdFor(input),
 		incomeCategory: input.kind === 'income' ? (input.incomeCategory ?? null) : null,
 		kind: input.kind,
 		nextDate: input.nextDate

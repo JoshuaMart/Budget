@@ -66,7 +66,8 @@ function parseRecurringForm(data: FormData): ParseResult {
 		body = {
 			...base,
 			toAccountId: data.get('toAccountId')?.toString() ?? '',
-			envelopeId: data.get('envelopeId')?.toString() ?? '',
+			// Empty = neutral transfer between own accounts, no envelope.
+			envelopeId: data.get('envelopeId')?.toString() || undefined,
 			categoryId: data.get('categoryId')?.toString() || undefined
 		};
 	} else if (kind === 'income') {
