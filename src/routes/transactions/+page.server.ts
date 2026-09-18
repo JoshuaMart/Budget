@@ -41,8 +41,7 @@ function parseAmountToCents(raw: string | undefined): number | null {
 }
 
 type ParseResult =
-	| { ok: true; data: import('$lib/server/schemas').TransactionInput }
-	| { ok: false; error: string };
+	{ ok: true; data: import('$lib/server/schemas').TransactionInput } | { ok: false; error: string };
 
 function parseTransactionForm(data: FormData): ParseResult {
 	const amountCents = parseAmountToCents(data.get('amount')?.toString());
