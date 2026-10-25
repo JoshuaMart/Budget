@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { accountBalance, monthSummary } from '$lib/domain';
+import { accountBalance, monthSummary } from '#lib/domain/index.ts';
 
 import { db } from '../db/client';
 import { user } from '../db/schema';

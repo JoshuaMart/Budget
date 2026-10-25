@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { dayLabel, type EnvelopeKey } from '#lib/domain/index.ts';
+	import { modals } from '#lib/modals.svelte.ts';
+	import Icon from '#lib/ui/Icon.svelte';
+	import Money from '#lib/ui/Money.svelte';
 	import { enhance } from '$app/forms';
-	import { dayLabel, type EnvelopeKey } from '$lib/domain';
-	import { modals } from '$lib/modals.svelte';
-	import Icon from '$lib/ui/Icon.svelte';
-	import Money from '$lib/ui/Money.svelte';
 
 	import type { PageProps } from './$types';
 

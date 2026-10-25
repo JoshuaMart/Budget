@@ -1,7 +1,7 @@
 // Pure budget calculations. Inputs are plain rows; outputs are plain numbers
 // or summary objects. No DB, no I/O, no Svelte.
 
-import type { Envelope, Transaction } from '$lib/server/db/schema';
+import type { Envelope, Transaction } from '#lib/server/db/schema.ts';
 
 import { isInMonth, type YearMonth } from './dates';
 

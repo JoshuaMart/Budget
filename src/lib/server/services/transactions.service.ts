@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, like, lte, type SQL } from 'drizzle-orm';
 
-import { endOfMonth, startOfMonth, toIsoDate } from '$lib/domain';
+import { endOfMonth, startOfMonth, toIsoDate } from '#lib/domain/index.ts';
 
 import { db } from '../db/client';
 import { transaction } from '../db/schema';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Envelope, Transaction } from '$lib/server/db/schema';
+import type { Envelope, Transaction } from '#lib/server/db/schema.ts';
 
 import {
 	envelopeBudget,

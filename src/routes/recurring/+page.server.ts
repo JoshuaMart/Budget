@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import type { RecurringInput } from '$lib/server/schemas';
-import { recurringInput } from '$lib/server/schemas';
-import { listAccountsWithBalance } from '$lib/server/services/accounts.service';
-import { listCategories } from '$lib/server/services/categories.service';
-import { listEnvelopes } from '$lib/server/services/envelopes.service';
+import type { RecurringInput } from '#lib/server/schemas/index.ts';
+import { recurringInput } from '#lib/server/schemas/index.ts';
+import { listAccountsWithBalance } from '#lib/server/services/accounts.service.ts';
+import { listCategories } from '#lib/server/services/categories.service.ts';
+import { listEnvelopes } from '#lib/server/services/envelopes.service.ts';
 import {
 	createRecurring,
 	deleteRecurring,
@@ -12,7 +12,7 @@ import {
 	runDueRecurrings,
 	toggleRecurring,
 	updateRecurring
-} from '$lib/server/services/recurring.service';
+} from '#lib/server/services/recurring.service.ts';
 
 import type { Actions, PageServerLoad } from './$types';
 

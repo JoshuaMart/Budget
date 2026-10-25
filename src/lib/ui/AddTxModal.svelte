@@ -1,8 +1,8 @@
 <script lang="ts">
+	import { type EnvelopeKey, toIsoDate } from '#lib/domain/index.ts';
+	import { type EditableRec, type EditableTx, modals } from '#lib/modals.svelte.ts';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { type EnvelopeKey, toIsoDate } from '$lib/domain';
-	import { type EditableRec, type EditableTx, modals } from '$lib/modals.svelte';
 
 	import Icon from './Icon.svelte';
 	import Switch from './Switch.svelte';

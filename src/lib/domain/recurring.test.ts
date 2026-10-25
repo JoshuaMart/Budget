@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Recurring } from '$lib/server/db/schema';
+import type { Recurring } from '#lib/server/db/schema.ts';
 
 import { dueRecurrings, materialize, nextOccurrence } from './recurring';
 

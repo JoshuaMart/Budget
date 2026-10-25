@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { modals } from '#lib/modals.svelte.ts';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { modals } from '$lib/modals.svelte';
 
 	import Icon from './Icon.svelte';
 

@@ -1,4 +1,4 @@
-import type { Account, Transaction } from '$lib/server/db/schema';
+import type { Account, Transaction } from '#lib/server/db/schema.ts';
 
 /**
  * Current balance of an account = initial balance + signed sum of its

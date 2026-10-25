@@ -1,12 +1,12 @@
 <script lang="ts">
 	import '../app.css';
 
-	import favicon from '$lib/assets/favicon.svg';
-	import { modals } from '$lib/modals.svelte';
-	import AccountsModal from '$lib/ui/AccountsModal.svelte';
-	import AddTxModal from '$lib/ui/AddTxModal.svelte';
-	import RatiosModal from '$lib/ui/RatiosModal.svelte';
-	import Sidebar from '$lib/ui/Sidebar.svelte';
+	import favicon from '#lib/assets/favicon.svg';
+	import { modals } from '#lib/modals.svelte.ts';
+	import AccountsModal from '#lib/ui/AccountsModal.svelte';
+	import AddTxModal from '#lib/ui/AddTxModal.svelte';
+	import RatiosModal from '#lib/ui/RatiosModal.svelte';
+	import Sidebar from '#lib/ui/Sidebar.svelte';
 
 	import type { LayoutProps } from './$types';
 

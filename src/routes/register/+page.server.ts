@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-import { signupEnabled } from '$lib/server/auth';
+import { signupEnabled } from '#lib/server/auth.ts';
 
 import type { PageServerLoad } from './$types';
 

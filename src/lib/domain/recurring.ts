@@ -1,7 +1,7 @@
 // Recurring-payment scheduling helpers. Used by the cron-like job that
 // materialises due payments and shifts their `nextDate`.
 
-import type { Recurring, Transaction } from '$lib/server/db/schema';
+import type { Recurring, Transaction } from '#lib/server/db/schema.ts';
 
 import { parseIsoDate, toIsoDate } from './dates';
 

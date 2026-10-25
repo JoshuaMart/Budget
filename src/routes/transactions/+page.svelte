@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { dayLabel, type EnvelopeKey } from '#lib/domain/index.ts';
+	import { modals } from '#lib/modals.svelte.ts';
+	import Icon from '#lib/ui/Icon.svelte';
+	import Money from '#lib/ui/Money.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { dayLabel, type EnvelopeKey } from '$lib/domain';
-	import { modals } from '$lib/modals.svelte';
-	import Icon from '$lib/ui/Icon.svelte';
-	import Money from '$lib/ui/Money.svelte';
 
 	import type { PageProps } from './$types';
 
@@ -45,14 +45,12 @@
 
 	function applyFilters() {
 		const qs = buildQuery({ q: search, env: data.envFilter });
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(`${resolve('/transactions')}${qs}`, { invalidateAll: true });
 	}
 
 	function setEnvFilter(env: EnvelopeKey | null) {
 		const envelopeId = env ? (data.envelopes.find((e) => e.key === env)?.id ?? null) : null;
 		const qs = buildQuery({ q: search, env: envelopeId });
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(`${resolve('/transactions')}${qs}`, { invalidateAll: true });
 	}
 

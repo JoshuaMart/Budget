@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Account, Transaction } from '$lib/server/db/schema';
+import type { Account, Transaction } from '#lib/server/db/schema.ts';
 
 import { accountBalance } from './accounts';
 

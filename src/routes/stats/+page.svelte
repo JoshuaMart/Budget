@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { type EnvelopeKey, monthLabel } from '$lib/domain';
-	import Donut from '$lib/ui/Donut.svelte';
-	import Money from '$lib/ui/Money.svelte';
+	import { type EnvelopeKey, monthLabel } from '#lib/domain/index.ts';
+	import Donut from '#lib/ui/Donut.svelte';
+	import Money from '#lib/ui/Money.svelte';
 
 	import type { PageProps } from './$types';
 
