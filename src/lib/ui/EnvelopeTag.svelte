@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EnvelopeKey } from '$lib/domain';
+	import type { EnvelopeKey } from '#lib/domain/index.ts';
 
 	let {
 		envelope,

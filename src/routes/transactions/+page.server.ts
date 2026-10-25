@@ -1,15 +1,15 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import { transactionInput } from '$lib/server/schemas';
-import { listAccountsWithBalance } from '$lib/server/services/accounts.service';
-import { listCategories } from '$lib/server/services/categories.service';
-import { listEnvelopes } from '$lib/server/services/envelopes.service';
+import { transactionInput } from '#lib/server/schemas/index.ts';
+import { listAccountsWithBalance } from '#lib/server/services/accounts.service.ts';
+import { listCategories } from '#lib/server/services/categories.service.ts';
+import { listEnvelopes } from '#lib/server/services/envelopes.service.ts';
 import {
 	createTransaction,
 	deleteTransaction,
 	listTransactions,
 	updateTransaction
-} from '$lib/server/services/transactions.service';
+} from '#lib/server/services/transactions.service.ts';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -41,7 +41,8 @@ function parseAmountToCents(raw: string | undefined): number | null {
 }
 
 type ParseResult =
-	{ ok: true; data: import('$lib/server/schemas').TransactionInput } | { ok: false; error: string };
+	| { ok: true; data: import('#lib/server/schemas/index.ts').TransactionInput }
+	| { ok: false; error: string };
 
 function parseTransactionForm(data: FormData): ParseResult {
 	const amountCents = parseAmountToCents(data.get('amount')?.toString());

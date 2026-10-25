@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { z } from 'zod';
 
+	import { authClient } from '#lib/auth-client.ts';
+	import AuthShell from '#lib/ui/AuthShell.svelte';
+	import Icon from '#lib/ui/Icon.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { authClient } from '$lib/auth-client';
-	import AuthShell from '$lib/ui/AuthShell.svelte';
-	import Icon from '$lib/ui/Icon.svelte';
 
 	import type { PageProps } from './$types';
 

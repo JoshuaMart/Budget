@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 
-import { complianceScore, monthSummary, type YearMonth } from '$lib/domain';
-import { listEnvelopes } from '$lib/server/services/envelopes.service';
-import { monthlyTrend, topCategories } from '$lib/server/services/stats.service';
-import { listTransactions } from '$lib/server/services/transactions.service';
+import { complianceScore, monthSummary, type YearMonth } from '#lib/domain/index.ts';
+import { listEnvelopes } from '#lib/server/services/envelopes.service.ts';
+import { monthlyTrend, topCategories } from '#lib/server/services/stats.service.ts';
+import { listTransactions } from '#lib/server/services/transactions.service.ts';
 
 import type { PageServerLoad } from './$types';
 

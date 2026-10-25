@@ -12,13 +12,13 @@
 - [x] Installer pnpm (`npm i -g pnpm` ou via Corepack).
 - [x] Initialiser le projet SvelteKit via `pnpm dlx sv create . --template minimal --types ts --add prettier --add eslint --add vitest=usages:unit --add playwright --install pnpm`.
 - [x] Pin `"packageManager": "pnpm@10.33.0"` dans `package.json`.
-- [x] Ajouter `engines` (`bun >=1.3.0`, `node >=20.0.0`) dans `package.json`.
+- [x] Ajouter `engines` (`bun >=1.4.0`, `node >=20.0.0`) dans `package.json`.
 - [x] Lockfile `pnpm-lock.yaml` généré par le scaffolding.
 - [x] `pnpm dev` démarre Vite, la page d'accueil SvelteKit répond en HTTP 200.
 
 ### 0.2 Configuration SvelteKit
 
-- [x] Adapter Bun activé dans `svelte.config.js` via `svelte-adapter-bun` (l'officiel `@sveltejs/adapter-bun` n'existe pas — `svelte-adapter-bun` est le package communautaire de référence). `@sveltejs/adapter-auto` retiré.
+- [x] Adapter Bun officiel `@sveltejs/adapter-bun` (SvelteKit 3), configuré dans `vite.config.ts` via `sveltekit({ adapter })`. `@sveltejs/adapter-auto` retiré.
 - [x] TypeScript strict + `noUncheckedIndexedAccess: true` dans `tsconfig.json` (`pnpm check` passe).
 - [x] Dossiers `src/lib/{db,server,domain,ui}` créés avec `.gitkeep` — accessibles via `$lib/db/...`, `$lib/server/...`, etc. (résolution `$lib` par défaut de SvelteKit).
 - [x] ESLint + `eslint-plugin-svelte` déjà actifs ; ajout de `eslint-plugin-simple-import-sort` (règles `simple-import-sort/imports` + `/exports`). Prettier + `.prettierignore` étendu (`Maquette/`, `.claude/`, `.svelte-kit/`, `build/`).

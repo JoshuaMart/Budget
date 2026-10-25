@@ -1,11 +1,16 @@
 <script lang="ts">
+	import {
+		addMonths,
+		daysRemainingInMonth,
+		type EnvelopeKey,
+		monthLabel
+	} from '#lib/domain/index.ts';
+	import { modals } from '#lib/modals.svelte.ts';
+	import Icon from '#lib/ui/Icon.svelte';
+	import Money from '#lib/ui/Money.svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { addMonths, daysRemainingInMonth, type EnvelopeKey, monthLabel } from '$lib/domain';
-	import { modals } from '$lib/modals.svelte';
-	import Icon from '$lib/ui/Icon.svelte';
-	import Money from '$lib/ui/Money.svelte';
 
 	import type { PageProps } from './$types';
 
@@ -23,7 +28,6 @@
 	function gotoMonth(delta: number) {
 		const next = addMonths(data.ym, delta);
 		const param = `${next.year}-${String(next.month + 1).padStart(2, '0')}`;
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(`${resolve('/')}?m=${param}`, { invalidateAll: true });
 	}
 

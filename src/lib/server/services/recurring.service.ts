@@ -1,6 +1,6 @@
 import { and, eq, lte } from 'drizzle-orm';
 
-import { materialize, nextOccurrence, toIsoDate } from '$lib/domain';
+import { materialize, nextOccurrence, toIsoDate } from '#lib/domain/index.ts';
 
 import { db } from '../db/client';
 import { recurring, transaction } from '../db/schema';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type EnvelopeKey, formatCents } from '$lib/domain';
+	import { type EnvelopeKey, formatCents } from '#lib/domain/index.ts';
 
 	import Money from './Money.svelte';
 

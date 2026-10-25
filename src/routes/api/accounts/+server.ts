@@ -1,7 +1,11 @@
 import { error, json } from '@sveltejs/kit';
 import { z } from 'zod';
 
-import { createAccount, deleteAccount, updateAccount } from '$lib/server/services/accounts.service';
+import {
+	createAccount,
+	deleteAccount,
+	updateAccount
+} from '#lib/server/services/accounts.service.ts';
 
 import type { RequestHandler } from './$types';
 

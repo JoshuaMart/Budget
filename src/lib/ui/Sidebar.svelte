@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { AccountWithBalance } from '#lib/server/services/accounts.service.ts';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { AccountWithBalance } from '$lib/server/services/accounts.service';
 
 	import Icon from './Icon.svelte';
 	import Money from './Money.svelte';

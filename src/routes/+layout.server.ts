@@ -1,7 +1,7 @@
-import { signupEnabled } from '$lib/server/auth';
-import { listAccountsWithBalance } from '$lib/server/services/accounts.service';
-import { listCategories } from '$lib/server/services/categories.service';
-import { listEnvelopes } from '$lib/server/services/envelopes.service';
+import { signupEnabled } from '#lib/server/auth.ts';
+import { listAccountsWithBalance } from '#lib/server/services/accounts.service.ts';
+import { listCategories } from '#lib/server/services/categories.service.ts';
+import { listEnvelopes } from '#lib/server/services/envelopes.service.ts';
 
 import type { LayoutServerLoad } from './$types';
 

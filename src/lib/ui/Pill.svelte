@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	import type { EnvelopeKey } from '$lib/domain';
+	import type { EnvelopeKey } from '#lib/domain/index.ts';
 
 	let {
 		active = false,

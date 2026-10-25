@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Multi-stage production build for the Budget SvelteKit + Bun + SQLite app.
 
-ARG BUN_VERSION=1.3
+ARG BUN_VERSION=1.4
 ARG PNPM_VERSION=10.33.0
 
 # ----------------------------------------------------------------

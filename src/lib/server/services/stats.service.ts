@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 
-import { addMonths, type EnvelopeKey, monthSummary, type YearMonth } from '$lib/domain';
+import { addMonths, type EnvelopeKey, monthSummary, type YearMonth } from '#lib/domain/index.ts';
 
 import { db } from '../db/client';
 import { category, envelope, transaction } from '../db/schema';

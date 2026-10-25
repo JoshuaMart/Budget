@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 
-import { accountBalance } from '$lib/domain';
+import { accountBalance } from '#lib/domain/index.ts';
 
 import { db } from '../db/client';
 import { account, transaction } from '../db/schema';

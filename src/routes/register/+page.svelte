@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { z } from 'zod';
 
+	import { authClient } from '#lib/auth-client.ts';
+	import AuthShell from '#lib/ui/AuthShell.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { authClient } from '$lib/auth-client';
-	import AuthShell from '$lib/ui/AuthShell.svelte';
 
 	const schema = z.object({
 		name: z.string().min(2, 'Nom trop court'),

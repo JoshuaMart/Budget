@@ -1,9 +1,10 @@
-import { type Handle, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 
-import { auth } from '$lib/server/auth';
-import { db } from '$lib/server/db/client';
-import { startRecurringScheduler } from '$lib/server/recurringScheduler';
+import { auth } from '#lib/server/auth.ts';
+import { db } from '#lib/server/db/client.ts';
+import { startRecurringScheduler } from '#lib/server/recurringScheduler.ts';
 
 // Apply pending migrations on server startup. Idempotent: drizzle's
 // migrator skips entries already recorded in __drizzle_migrations.

@@ -1,7 +1,7 @@
-/* Global app styles. Tokens (CSS custom properties) live in $lib/ui/tokens.css.
+/* Global app styles. Tokens (CSS custom properties) live in #lib/ui/tokens.css.
  * Fonts (Inter, JetBrains Mono) are loaded from app.html.
  */
-@import '$lib/ui/tokens.css';
+@import '#lib/ui/tokens.css';
 
 * {
 	box-sizing: border-box;

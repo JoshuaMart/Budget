@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatCents } from '$lib/domain';
+	import { formatCents } from '#lib/domain/index.ts';
 
 	let {
 		cents,

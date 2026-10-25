@@ -1,14 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import { monthSummary, type YearMonth } from '$lib/domain';
-import { ratiosInput } from '$lib/server/schemas';
+import { monthSummary, type YearMonth } from '#lib/domain/index.ts';
+import { ratiosInput } from '#lib/server/schemas/index.ts';
 import {
 	createCategory,
 	deleteCategory,
 	listCategories
-} from '$lib/server/services/categories.service';
-import { listEnvelopes, updateRatios } from '$lib/server/services/envelopes.service';
-import { listTransactions } from '$lib/server/services/transactions.service';
+} from '#lib/server/services/categories.service.ts';
+import { listEnvelopes, updateRatios } from '#lib/server/services/envelopes.service.ts';
+import { listTransactions } from '#lib/server/services/transactions.service.ts';
 
 import type { Actions, PageServerLoad } from './$types';
 
