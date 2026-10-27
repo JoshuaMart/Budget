@@ -66,14 +66,16 @@ export function deleteCategory(userId: string, categoryId: string) {
 
 		tx.update(transaction)
 			.set({ categoryId: virtual.id })
-			.where(eq(transaction.categoryId, categoryId))
+			.where(and(eq(transaction.userId, userId), eq(transaction.categoryId, categoryId)))
 			.run();
 
 		tx.update(recurring)
 			.set({ categoryId: virtual.id })
-			.where(eq(recurring.categoryId, categoryId))
+			.where(and(eq(recurring.userId, userId), eq(recurring.categoryId, categoryId)))
 			.run();
 
-		tx.delete(category).where(eq(category.id, categoryId)).run();
+		tx.delete(category)
+			.where(and(eq(category.userId, userId), eq(category.id, categoryId)))
+			.run();
 	});
 }

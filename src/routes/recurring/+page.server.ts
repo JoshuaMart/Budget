@@ -98,7 +98,7 @@ export const actions: Actions = {
 		// Materialise straight away so a recurring due today (or backdated)
 		// shows up in the transactions list immediately, not only on the next
 		// scheduler tick.
-		runDueRecurrings();
+		runDueRecurrings({ userId: locals.user.id });
 		return { success: true };
 	},
 
@@ -110,7 +110,7 @@ export const actions: Actions = {
 		const result = parseRecurringForm(data);
 		if (!result.ok) return fail(400, { error: result.error });
 		updateRecurring(locals.user.id, id, result.data);
-		runDueRecurrings();
+		runDueRecurrings({ userId: locals.user.id });
 		return { success: true };
 	},
 

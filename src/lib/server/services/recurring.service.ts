@@ -93,9 +93,16 @@ export function deleteRecurring(userId: string, recId: string) {
  * iteration, with `nextDate` advanced each time). Idempotent: skips inserts
  * if a transaction with the same `recurringId` and `date` already exists.
  *
+ * When `userId` is given, only that user's recurrings are materialised —
+ * request handlers must always pass it so one user's action never writes
+ * transactions for another. The global scheduler omits it.
+ *
  * Returns the number of transactions inserted.
  */
-export function runDueRecurrings(now: Date = new Date()): number {
+export function runDueRecurrings({
+	now = new Date(),
+	userId
+}: { now?: Date; userId?: string } = {}): number {
 	const todayIso = toIsoDate(now);
 	let total = 0;
 	let safety = 1000; // hard upper bound
@@ -104,7 +111,13 @@ export function runDueRecurrings(now: Date = new Date()): number {
 		const due = db
 			.select()
 			.from(recurring)
-			.where(and(eq(recurring.active, true), lte(recurring.nextDate, todayIso)))
+			.where(
+				and(
+					eq(recurring.active, true),
+					lte(recurring.nextDate, todayIso),
+					userId ? eq(recurring.userId, userId) : undefined
+				)
+			)
 			.all();
 		if (due.length === 0) break;
 
