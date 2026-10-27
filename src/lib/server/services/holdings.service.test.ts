@@ -169,4 +169,18 @@ describe('holdings.service — failure paths', () => {
 		updateHolding(userId, h.id, { ...base, assetClass: 'crypto', symbol: 'bitcoin' }, 7_000_000);
 		expect(listHoldings(userId)[0]?.lastPriceCents).toBe(7_000_000);
 	});
+
+	it('a holding without PRU counts in value but not in invested amount', async () => {
+		const userId = bootstrap();
+		createHolding(userId, {
+			...base,
+			assetClass: 'crypto',
+			symbol: 'bitcoin',
+			quantity: 0.01,
+			avgCostCents: null
+		});
+		const now = new Date('2026-10-27T10:00:00');
+		await refreshPrices({ userId, now, fetchFn: fakeFetch });
+		expect(listSnapshots(userId)[0]).toMatchObject({ holdingsCents: 70_000, investedCents: 0 });
+	});
 });

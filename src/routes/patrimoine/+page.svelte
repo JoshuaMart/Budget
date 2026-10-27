@@ -157,7 +157,12 @@
 		<div class="value num" class:gain={perf.gainCents > 0} class:loss={perf.gainCents < 0}>
 			<Money cents={perf.gainCents} signed compact />
 		</div>
-		<div class="delta">{fmtPct(perf.gainPct)}</div>
+		<div class="delta">
+			{fmtPct(perf.gainPct)}
+			{#if perf.uncostedCount > 0}
+				· hors {perf.uncostedCount} position{perf.uncostedCount > 1 ? 's' : ''} sans PRU
+			{/if}
+		</div>
 	</div>
 	<div class="hero-card">
 		<div class="label">Liquidités</div>
@@ -253,8 +258,8 @@
 	<div class="rec-list">
 		{#each g.holdings as h (h.id)}
 			{@const value = holdingValue(h)}
-			{@const gain = value - holdingCost(h)}
 			{@const cost = holdingCost(h)}
+			{@const gain = cost === null ? null : value - cost}
 			<div
 				class="pos-row"
 				role="button"
@@ -281,7 +286,9 @@
 				</div>
 				<div class="pos-qty num">
 					<div>{fmtQty(h.quantity)}</div>
-					<div class="pos-meta">PRU {formatUnitCents(h.avgCostCents)}</div>
+					<div class="pos-meta">
+						PRU {h.avgCostCents === null ? '—' : formatUnitCents(h.avgCostCents)}
+					</div>
 				</div>
 				<div class="pos-price num">
 					{#if h.lastPriceCents !== null}
@@ -292,10 +299,14 @@
 				</div>
 				<div class="pos-value num">
 					<div><Money cents={value} /></div>
-					<div class="pos-gain" class:gain={gain > 0} class:loss={gain < 0}>
-						<Money cents={gain} signed />
-						{#if cost > 0}· {fmtPct((gain / cost) * 100)}{/if}
-					</div>
+					{#if gain === null}
+						<div class="pos-gain pos-meta">PRU non renseigné</div>
+					{:else}
+						<div class="pos-gain" class:gain={gain > 0} class:loss={gain < 0}>
+							<Money cents={gain} signed />
+							{#if cost}· {fmtPct((gain / cost) * 100)}{/if}
+						</div>
+					{/if}
 				</div>
 				<form
 					method="POST"

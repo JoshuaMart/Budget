@@ -197,7 +197,9 @@ export const holding = sqliteTable(
 		// Average unit cost (PRU) and last fetched unit price, in euro cents.
 		// Fractional on purpose: a unit can be worth far less than a cent
 		// (memecoins); only aggregated position values get rounded.
-		avgCostCents: real().notNull().default(0),
+		// PRU is optional: null means unknown, and the position is left out
+		// of gain computations.
+		avgCostCents: real(),
 		lastPriceCents: real(),
 		lastPriceAt: integer({ mode: 'timestamp' }),
 		createdAt: now()

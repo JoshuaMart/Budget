@@ -156,7 +156,7 @@ export function recordSnapshot(userId: string, now = new Date()) {
 	const rows = listHoldings(userId);
 	const values = {
 		holdingsCents: rows.reduce((s, h) => s + holdingValue(h), 0),
-		investedCents: rows.reduce((s, h) => s + holdingCost(h), 0),
+		investedCents: rows.reduce((s, h) => s + (holdingCost(h) ?? 0), 0),
 		cashCents: listAccountsWithBalance(userId).reduce((s, a) => s + a.currentBalanceCents, 0)
 	};
 	db.insert(netWorthSnapshot)

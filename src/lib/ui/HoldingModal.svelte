@@ -12,7 +12,7 @@
 		symbol: string;
 		label: string;
 		quantity: number;
-		avgCostCents: number;
+		avgCostCents: number | null;
 	}
 
 	interface SymbolMatch {
@@ -43,9 +43,19 @@
 	let quantity = $state(initial ? String(initial.quantity).replace('.', ',') : '');
 	// Round-trip through toPrecision to drop float noise (0.1 + 0.2…) while
 	// keeping sub-cent PRUs intact.
-	let avgCost = $state(
-		initial ? String(Number((initial.avgCostCents / 100).toPrecision(12))).replace('.', ',') : ''
+	let cost = $state(
+		initial?.avgCostCents != null
+			? String(Number((initial.avgCostCents / 100).toPrecision(12))).replace('.', ',')
+			: ''
 	);
+	// Brokers show either the PRU or the total amount invested; accept both.
+	let costMode = $state<'unit' | 'total'>('unit');
+
+	const COST_HINT: Record<AssetClass, string> = {
+		etf: 'Affiché par votre courtier sur la ligne du PEA (« PRU » ou « prix de revient »).',
+		stock: 'Affiché par votre courtier sur la ligne (« PRU » ou « prix de revient »).',
+		crypto: "Prix d'achat moyen indiqué par la plateforme, ou le total investi."
+	};
 
 	let query = $state('');
 	let matches = $state<SymbolMatch[]>([]);
@@ -205,29 +215,48 @@
 			<input id="holding-label" name="label" bind:value={label} required maxlength="80" />
 		</div>
 
-		<div class="grid-2">
-			<div class="field">
-				<label for="holding-qty">Quantité</label>
-				<input
-					id="holding-qty"
-					name="quantity"
-					inputmode="decimal"
-					placeholder={assetClass === 'crypto' ? '0,05' : '10'}
-					bind:value={quantity}
-					required
-				/>
+		<div class="field">
+			<label for="holding-qty">Quantité</label>
+			<input
+				id="holding-qty"
+				name="quantity"
+				inputmode="decimal"
+				placeholder={assetClass === 'crypto' ? '0,05' : '10'}
+				bind:value={quantity}
+				required
+			/>
+		</div>
+
+		<div class="field">
+			<div class="cost-head">
+				<label for="holding-cost">Prix de revient <span class="optional">facultatif</span></label>
+				<div class="cost-mode" role="group" aria-label="Type de prix de revient">
+					<button
+						type="button"
+						class:active={costMode === 'unit'}
+						aria-pressed={costMode === 'unit'}
+						onclick={() => (costMode = 'unit')}>Par unité</button
+					>
+					<button
+						type="button"
+						class:active={costMode === 'total'}
+						aria-pressed={costMode === 'total'}
+						onclick={() => (costMode = 'total')}>Total investi</button
+					>
+				</div>
 			</div>
-			<div class="field">
-				<label for="holding-pru">Prix de revient unitaire (€)</label>
-				<input
-					id="holding-pru"
-					name="avgCost"
-					inputmode="decimal"
-					placeholder="0,00"
-					bind:value={avgCost}
-					required
-				/>
-			</div>
+			<input type="hidden" name="costMode" value={costMode} />
+			<input
+				id="holding-cost"
+				name="cost"
+				inputmode="decimal"
+				placeholder={costMode === 'unit' ? 'PRU en €' : 'Montant total investi en €'}
+				bind:value={cost}
+			/>
+			<small class="hint">
+				{COST_HINT[assetClass]} Laissez vide si vous ne le connaissez pas : la position compte dans le
+				patrimoine, sans calcul de plus-value.
+			</small>
 		</div>
 
 		<div class="field">
@@ -259,10 +288,41 @@
 </div>
 
 <style>
-	.grid-2 {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 12px;
+	.cost-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.optional {
+		text-transform: none;
+		letter-spacing: 0;
+		font-weight: 400;
+		color: var(--text-subtle);
+	}
+	.cost-mode {
+		display: inline-flex;
+		gap: 2px;
+		padding: 2px;
+		background: var(--bg-sunk);
+		border-radius: 7px;
+	}
+	.cost-mode button {
+		padding: 3px 9px;
+		border-radius: 5px;
+		font-size: 12px;
+		color: var(--text-muted);
+	}
+	.cost-mode button.active {
+		background: var(--bg-elev);
+		color: var(--text);
+		box-shadow: var(--shadow-sm);
+	}
+	.hint {
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: var(--text-muted);
 	}
 	.picked {
 		display: flex;
@@ -316,11 +376,5 @@
 		color: oklch(0.45 0.18 25);
 		font-size: 13px;
 		margin-top: 4px;
-	}
-	@media (max-width: 640px) {
-		.grid-2 {
-			grid-template-columns: 1fr;
-			gap: 0;
-		}
 	}
 </style>

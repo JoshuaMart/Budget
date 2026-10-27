@@ -9,38 +9,54 @@ export interface HoldingLike {
 	assetClass: AssetClass;
 	wallet: string;
 	quantity: number;
-	avgCostCents: number;
+	/** Average unit cost (PRU); null when the user didn't provide it. */
+	avgCostCents: number | null;
 	lastPriceCents: number | null;
 }
 
 /** Current market value; falls back to cost basis while no price is known. */
 export function holdingValue(h: HoldingLike): number {
-	const unit = h.lastPriceCents ?? h.avgCostCents;
+	const unit = h.lastPriceCents ?? h.avgCostCents ?? 0;
 	return Math.round(h.quantity * unit);
 }
 
-export function holdingCost(h: HoldingLike): number {
-	return Math.round(h.quantity * h.avgCostCents);
+/** Amount invested, or null when the PRU is unknown. */
+export function holdingCost(h: HoldingLike): number | null {
+	return h.avgCostCents === null ? null : Math.round(h.quantity * h.avgCostCents);
 }
 
 export interface Performance {
+	/** Market value of every holding. */
 	valueCents: number;
+	/** Invested amount, over holdings with a known PRU only. */
 	costCents: number;
+	/** Gain over holdings with a known PRU only. */
 	gainCents: number;
 	/** Gain relative to cost, in percent. 0 when the cost basis is 0. */
 	gainPct: number;
+	/** Holdings left out of cost and gain because their PRU is unknown. */
+	uncostedCount: number;
 }
 
 export function performance(holdings: HoldingLike[]): Performance {
 	let valueCents = 0;
 	let costCents = 0;
+	let costedValueCents = 0;
+	let uncostedCount = 0;
 	for (const h of holdings) {
-		valueCents += holdingValue(h);
-		costCents += holdingCost(h);
+		const value = holdingValue(h);
+		const cost = holdingCost(h);
+		valueCents += value;
+		if (cost === null) {
+			uncostedCount++;
+			continue;
+		}
+		costCents += cost;
+		costedValueCents += value;
 	}
-	const gainCents = valueCents - costCents;
+	const gainCents = costedValueCents - costCents;
 	const gainPct = costCents > 0 ? (gainCents / costCents) * 100 : 0;
-	return { valueCents, costCents, gainCents, gainPct };
+	return { valueCents, costCents, gainCents, gainPct, uncostedCount };
 }
 
 /** Market value summed per asset class (always the three keys). */

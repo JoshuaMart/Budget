@@ -95,6 +95,9 @@ export const holdingInput = z.object({
 	symbol: z.string().trim().min(1, 'Symbole requis').max(40),
 	label: z.string().trim().min(1, 'Libellé requis').max(80),
 	quantity: z.number({ error: 'Quantité invalide' }).positive('Quantité invalide'),
-	avgCostCents: z.number({ error: 'Prix de revient invalide' }).min(0, 'Prix de revient invalide')
+	avgCostCents: z
+		.number({ error: 'Prix de revient invalide' })
+		.min(0, 'Prix de revient invalide')
+		.nullable()
 });
 export type HoldingInput = z.infer<typeof holdingInput>;

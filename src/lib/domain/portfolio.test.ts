@@ -35,7 +35,8 @@ describe('portfolio', () => {
 			valueCents: 610_000,
 			costCents: 520_000,
 			gainCents: 90_000,
-			gainPct: (90_000 / 520_000) * 100
+			gainPct: (90_000 / 520_000) * 100,
+			uncostedCount: 0
 		});
 	});
 
@@ -65,5 +66,19 @@ describe('portfolio', () => {
 			{ wallet: 'Ledger', valueCents: 500 },
 			{ wallet: 'PEA', valueCents: 200 }
 		]);
+	});
+
+	it('performance leaves holdings without PRU out of cost and gain', () => {
+		const p = performance([
+			h({ quantity: 10, avgCostCents: 50_000, lastPriceCents: 60_000 }),
+			h({ quantity: 1, avgCostCents: null, lastPriceCents: 7_000_000 })
+		]);
+		expect(p).toEqual({
+			valueCents: 7_600_000,
+			costCents: 500_000,
+			gainCents: 100_000,
+			gainPct: 20,
+			uncostedCount: 1
+		});
 	});
 });

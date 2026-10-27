@@ -6,7 +6,7 @@ CREATE TABLE `holding` (
 	`symbol` text NOT NULL,
 	`label` text NOT NULL,
 	`quantity` real NOT NULL,
-	`avgCostCents` real DEFAULT 0 NOT NULL,
+	`avgCostCents` real,
 	`lastPriceCents` real,
 	`lastPriceAt` integer,
 	`createdAt` integer NOT NULL,

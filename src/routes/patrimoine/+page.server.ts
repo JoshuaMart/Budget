@@ -38,14 +38,23 @@ type ParseResult = { ok: true; data: HoldingInput } | { ok: false; error: string
 function parseHoldingForm(data: FormData): ParseResult {
 	// NaN (unparsable input) is rejected by the schema with its own message.
 	const num = (key: string) => parseDecimal(data.get(key)?.toString()) ?? Number.NaN;
+	const quantity = num('quantity');
+	// Cost is optional and can be typed per unit (PRU) or as the total
+	// amount invested, which brokers and exchanges often show instead.
+	const rawCost = data.get('cost')?.toString().trim() ?? '';
+	let avgCostCents: number | null = null;
+	if (rawCost) {
+		const cost = num('cost') * 100;
+		avgCostCents = data.get('costMode') === 'total' ? cost / quantity : cost;
+	}
 	const parsed = holdingInput.safeParse({
 		assetClass: data.get('assetClass')?.toString(),
 		wallet: data.get('wallet')?.toString() ?? '',
 		symbol: data.get('symbol')?.toString() ?? '',
 		label: data.get('label')?.toString() ?? '',
-		quantity: num('quantity'),
-		// Unit cost keeps sub-cent precision, like fetched prices.
-		avgCostCents: num('avgCost') * 100
+		quantity,
+		// Keeps sub-cent precision, like fetched prices.
+		avgCostCents
 	});
 	if (!parsed.success) {
 		return { ok: false, error: parsed.error.issues[0]?.message ?? 'Données invalides' };

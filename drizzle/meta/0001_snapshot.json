@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "92fcf9ef-314f-4820-93a1-18fd7209a53a",
+  "id": "696df8c4-a64a-4b85-b160-95c0fc5b76f9",
   "prevId": "fb2f3d32-9266-478f-a883-d75f1eb1a708",
   "tables": {
     "account": {
@@ -414,9 +414,8 @@
           "name": "avgCostCents",
           "type": "real",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "notNull": false,
+          "autoincrement": false
         },
         "lastPriceCents": {
           "name": "lastPriceCents",
