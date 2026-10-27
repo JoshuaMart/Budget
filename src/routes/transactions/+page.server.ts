@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 
+import { parseAmountToCents } from '#lib/domain/index.ts';
 import { transactionInput } from '#lib/server/schemas/index.ts';
 import { listAccountsWithBalance } from '#lib/server/services/accounts.service.ts';
 import { listCategories } from '#lib/server/services/categories.service.ts';
@@ -31,14 +32,6 @@ export const load: PageServerLoad = ({ locals, url }) => {
 
 	return { transactions, envelopes, categories, accounts, search, envFilter: envelopeId ?? null };
 };
-
-function parseAmountToCents(raw: string | undefined): number | null {
-	if (!raw) return null;
-	const normalised = raw.replace(',', '.').trim();
-	const n = Number.parseFloat(normalised);
-	if (!Number.isFinite(n) || n <= 0) return null;
-	return Math.round(n * 100);
-}
 
 type ParseResult =
 	| { ok: true; data: import('#lib/server/schemas/index.ts').TransactionInput }

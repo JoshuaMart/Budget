@@ -4,6 +4,7 @@ import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 
 import { auth } from '#lib/server/auth.ts';
 import { db } from '#lib/server/db/client.ts';
+import { startPriceScheduler } from '#lib/server/priceScheduler.ts';
 import { startRecurringScheduler } from '#lib/server/recurringScheduler.ts';
 
 // Apply pending migrations on server startup. Idempotent: drizzle's
@@ -12,6 +13,9 @@ migrate(db, { migrationsFolder: './drizzle' });
 
 // Materialise due recurrings now and every 24h afterwards.
 startRecurringScheduler();
+
+// Refresh holding prices now and every 6h afterwards.
+startPriceScheduler();
 
 const PUBLIC_PREFIXES = ['/login', '/register', '/api/auth'];
 
