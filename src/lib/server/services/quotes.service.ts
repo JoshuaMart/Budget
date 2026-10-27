@@ -88,7 +88,7 @@ async function coingeckoPricesEur(ids: string[], fetchFn: Fetch): Promise<Map<st
 }
 
 /**
- * Fetch current unit prices in euro cents, keyed by `quoteKey`. Symbols whose
+ * Fetch current unit prices in (fractional) euro cents, keyed by `quoteKey`. Symbols whose
  * lookup fails are simply missing from the result, so one bad ticker never
  * blocks the others.
  */
@@ -97,7 +97,8 @@ export async function fetchPricesCents(
 	fetchFn: Fetch = fetch
 ): Promise<Map<string, number>> {
 	const out = new Map<string, number>();
-	const toCents = (eur: number) => Math.round(eur * 100);
+	// Not rounded: sub-cent unit prices must survive (see holding schema).
+	const toCents = (eur: number) => eur * 100;
 
 	const cryptoIds = [
 		...new Set(refs.filter((r) => r.assetClass === 'crypto').map((r) => r.symbol))

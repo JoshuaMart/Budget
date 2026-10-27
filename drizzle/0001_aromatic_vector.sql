@@ -6,8 +6,8 @@ CREATE TABLE `holding` (
 	`symbol` text NOT NULL,
 	`label` text NOT NULL,
 	`quantity` real NOT NULL,
-	`avgCostCents` integer DEFAULT 0 NOT NULL,
-	`lastPriceCents` integer,
+	`avgCostCents` real DEFAULT 0 NOT NULL,
+	`lastPriceCents` real,
 	`lastPriceAt` integer,
 	`createdAt` integer NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade

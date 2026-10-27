@@ -282,11 +282,11 @@ End-to-end vérifié : login démo → dashboard montre « Bonjour Camille » / 
 
 ## 10. Patrimoine (`/patrimoine`)
 
-- [x] Tables `holding` (ETF / action / crypto, enveloppe libre PEA·CTO·…, quantité fractionnaire `real`, PRU en centimes, dernier cours) et `net_worth_snapshot` (un point par user et par jour). Migration `0001_*.sql`.
+- [x] Tables `holding` (ETF / action / crypto, enveloppe libre PEA·CTO·…, quantité, PRU et dernier cours en `real` — centimes fractionnaires pour les actifs sous le centime) et `net_worth_snapshot` (un point par user et par jour). Migration `0001_*.sql`.
 - [x] `domain/portfolio.ts` : `holdingValue`, `holdingCost`, `performance`, `allocationByClass`, `allocationByWallet` (+ tests).
 - [x] `quotes.service.ts` : cours sans clé API — Yahoo Finance (ticker `CW8.PA`, `AAPL`, conversion EUR via les paires `XXXEUR=X`, pence GBp gérés) et CoinGecko (id `bitcoin`, `solana`). Recherche de symboles pour le formulaire (`/api/quotes/search`).
-- [x] `holdings.service.ts` : CRUD scopé user, `refreshPrices` (un symbole en échec garde son ancien cours) + snapshot du jour (upsert).
-- [x] `priceScheduler.ts` : actualisation au boot puis toutes les 6 h ; la page rafraîchit aussi si un cours a plus d'1 h. Bouton « Actualiser les cours ».
+- [x] `holdings.service.ts` : CRUD scopé user, `refreshPrices` (un symbole en échec garde son ancien cours, pas de snapshot si aucun cours n'a été obtenu, écriture conditionnée au symbole lu avant le fetch) + snapshot du jour (upsert).
+- [x] `priceScheduler.ts` : actualisation au boot puis toutes les 6 h ; la page rafraîchit aussi si un cours a plus d'1 h (au plus une tentative par heure, même si le fournisseur est en panne). Bouton « Actualiser les cours ».
 - [x] Vue : patrimoine net (comptes + investissements), plus-value latente, courbe d'évolution, répartition par classe et par enveloppe, positions groupées par enveloppe. Ajout/édition via recherche (pas de saisie de cours manuelle — un symbole sans cours est refusé).
 
 ---

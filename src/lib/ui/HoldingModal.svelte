@@ -41,7 +41,11 @@
 	let label = $state(initial?.label ?? '');
 	let wallet = $state(initial?.wallet ?? 'PEA');
 	let quantity = $state(initial ? String(initial.quantity).replace('.', ',') : '');
-	let avgCost = $state(initial ? (initial.avgCostCents / 100).toFixed(2).replace('.', ',') : '');
+	// Round-trip through toPrecision to drop float noise (0.1 + 0.2…) while
+	// keeping sub-cent PRUs intact.
+	let avgCost = $state(
+		initial ? String(Number((initial.avgCostCents / 100).toPrecision(12))).replace('.', ',') : ''
+	);
 
 	let query = $state('');
 	let matches = $state<SymbolMatch[]>([]);
@@ -69,25 +73,33 @@
 		scheduleSearch();
 	}
 
+	// Bumped on every new search so a slow, older response can't overwrite
+	// the results of a newer query.
+	let searchSeq = 0;
+
 	function scheduleSearch() {
 		clearTimeout(searchTimer);
+		const seq = ++searchSeq;
 		const q = query.trim();
 		if (q.length < 2) {
 			matches = [];
+			searching = false;
 			return;
 		}
 		searchTimer = setTimeout(async () => {
 			searching = true;
+			let found: SymbolMatch[] = [];
 			try {
 				const res = await fetch(
 					`/api/quotes/search?q=${encodeURIComponent(q)}&class=${assetClass}`
 				);
-				matches = res.ok ? await res.json() : [];
+				if (res.ok) found = await res.json();
 			} catch {
-				matches = [];
-			} finally {
-				searching = false;
+				// Leave `found` empty: the list shows "Aucun résultat."
 			}
+			if (seq !== searchSeq) return;
+			matches = found;
+			searching = false;
 		}, 300);
 	}
 

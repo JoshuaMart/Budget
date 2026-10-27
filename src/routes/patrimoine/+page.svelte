@@ -5,6 +5,7 @@
 		ASSET_CLASSES,
 		type AssetClass,
 		formatCents,
+		formatUnitCents,
 		holdingCost,
 		holdingValue,
 		performance
@@ -261,6 +262,8 @@
 				title="Modifier la position"
 				onclick={() => openEdit(h)}
 				onkeydown={(e) => {
+					// Ignore keys bubbling from the nested delete button.
+					if (e.target !== e.currentTarget) return;
 					if (e.key === 'Enter' || e.key === ' ') {
 						e.preventDefault();
 						openEdit(h);
@@ -278,11 +281,11 @@
 				</div>
 				<div class="pos-qty num">
 					<div>{fmtQty(h.quantity)}</div>
-					<div class="pos-meta">PRU <Money cents={h.avgCostCents} /></div>
+					<div class="pos-meta">PRU {formatUnitCents(h.avgCostCents)}</div>
 				</div>
 				<div class="pos-price num">
 					{#if h.lastPriceCents !== null}
-						<Money cents={h.lastPriceCents} />
+						{formatUnitCents(h.lastPriceCents)}
 					{:else}
 						<span class="pos-meta">cours indisponible</span>
 					{/if}

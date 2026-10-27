@@ -1,10 +1,13 @@
 import { fail, redirect } from '@sveltejs/kit';
 
+import { parseDecimal } from '#lib/domain/index.ts';
 import { type HoldingInput, holdingInput } from '#lib/server/schemas/index.ts';
 import {
 	createHolding,
 	deleteHolding,
+	getHolding,
 	hasStalePrices,
+	isSameQuote,
 	listHoldings,
 	listSnapshots,
 	recordSnapshot,
@@ -30,21 +33,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return { holdings: listHoldings(userId), snapshots: listSnapshots(userId) };
 };
 
-function parseDecimal(raw: FormDataEntryValue | null): number {
-	return Number.parseFloat((raw?.toString() ?? '').replace(/\s/g, '').replace(',', '.'));
-}
-
 type ParseResult = { ok: true; data: HoldingInput } | { ok: false; error: string };
 
 function parseHoldingForm(data: FormData): ParseResult {
-	const avgCost = parseDecimal(data.get('avgCost'));
+	// NaN (unparsable input) is rejected by the schema with its own message.
+	const num = (key: string) => parseDecimal(data.get(key)?.toString()) ?? Number.NaN;
 	const parsed = holdingInput.safeParse({
 		assetClass: data.get('assetClass')?.toString(),
 		wallet: data.get('wallet')?.toString() ?? '',
 		symbol: data.get('symbol')?.toString() ?? '',
 		label: data.get('label')?.toString() ?? '',
-		quantity: parseDecimal(data.get('quantity')),
-		avgCostCents: Number.isFinite(avgCost) ? Math.round(avgCost * 100) : Number.NaN
+		quantity: num('quantity'),
+		// Unit cost keeps sub-cent precision, like fetched prices.
+		avgCostCents: num('avgCost') * 100
 	});
 	if (!parsed.success) {
 		return { ok: false, error: parsed.error.issues[0]?.message ?? 'Données invalides' };
@@ -58,7 +59,9 @@ async function priceOf(input: HoldingInput): Promise<number | undefined> {
 	return prices.get(quoteKey(input));
 }
 
-const UNKNOWN_SYMBOL = 'Aucun cours trouvé pour ce symbole — choisissez-le dans les suggestions.';
+// Unknown ticker and provider outage look the same from here.
+const NO_QUOTE =
+	'Cours indisponible pour ce symbole : choisissez-le dans les suggestions, ou réessayez plus tard si le service de cotation ne répond pas.';
 
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
@@ -66,7 +69,7 @@ export const actions: Actions = {
 		const result = parseHoldingForm(await request.formData());
 		if (!result.ok) return fail(400, { error: result.error });
 		const price = await priceOf(result.data);
-		if (price === undefined) return fail(400, { error: UNKNOWN_SYMBOL });
+		if (price === undefined) return fail(400, { error: NO_QUOTE });
 		createHolding(locals.user.id, result.data, price);
 		recordSnapshot(locals.user.id);
 		return { success: true };
@@ -79,9 +82,18 @@ export const actions: Actions = {
 		if (!id) return fail(400, { error: 'Identifiant manquant' });
 		const result = parseHoldingForm(data);
 		if (!result.ok) return fail(400, { error: result.error });
-		if ((await priceOf(result.data)) === undefined) return fail(400, { error: UNKNOWN_SYMBOL });
-		updateHolding(locals.user.id, id, result.data);
-		await refreshPrices({ userId: locals.user.id }).catch(() => 0);
+		const userId = locals.user.id;
+		const current = getHolding(userId, id);
+		if (!current) return fail(404, { error: 'Position introuvable' });
+		// Only a new symbol needs a quote; editing quantity or PRU must keep
+		// working while the price providers are down.
+		let price: number | undefined;
+		if (!isSameQuote(current, result.data)) {
+			price = await priceOf(result.data);
+			if (price === undefined) return fail(400, { error: NO_QUOTE });
+		}
+		updateHolding(userId, id, result.data, price);
+		recordSnapshot(userId);
 		return { success: true };
 	},
 

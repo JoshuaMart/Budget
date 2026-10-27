@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 
+import { parseAmountToCents } from '#lib/domain/index.ts';
 import type { RecurringInput } from '#lib/server/schemas/index.ts';
 import { recurringInput } from '#lib/server/schemas/index.ts';
 import { listAccountsWithBalance } from '#lib/server/services/accounts.service.ts';
@@ -26,13 +27,6 @@ export const load: PageServerLoad = ({ locals }) => {
 		accounts: listAccountsWithBalance(userId)
 	};
 };
-
-function parseAmountToCents(raw: string | undefined): number | null {
-	if (!raw) return null;
-	const n = Number.parseFloat(raw.replace(',', '.').trim());
-	if (!Number.isFinite(n) || n <= 0) return null;
-	return Math.round(n * 100);
-}
 
 type ParseResult = { ok: true; data: RecurringInput } | { ok: false; error: string };
 

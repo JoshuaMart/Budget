@@ -20,6 +20,12 @@ export function listHoldings(userId: string) {
 		.all();
 }
 
+// Last refresh attempt per user. A quote that keeps failing never updates
+// `lastPriceAt`, so staleness can't rely on it alone or every page load
+// would block on the network again. In-memory is fine: single process,
+// and a restart simply allows one immediate retry.
+const lastAttemptAt = new Map<string, number>();
+
 export function createHolding(userId: string, input: HoldingInput, lastPriceCents?: number) {
 	const [created] = db
 		.insert(holding)
@@ -35,19 +41,45 @@ export function createHolding(userId: string, input: HoldingInput, lastPriceCent
 	return created;
 }
 
-export function updateHolding(userId: string, holdingId: string, input: HoldingInput) {
-	const [current] = db
+/** Find one of the user's holdings, or undefined. */
+export function getHolding(userId: string, holdingId: string) {
+	return db
 		.select()
 		.from(holding)
 		.where(and(eq(holding.userId, userId), eq(holding.id, holdingId)))
-		.all();
+		.get();
+}
+
+/**
+ * Update a holding. When the quote identity (symbol / class) changes, the
+ * cached price is replaced by `lastPriceCents` (the new symbol's price,
+ * fetched by the caller) or cleared until the next refresh.
+ */
+export function updateHolding(
+	userId: string,
+	holdingId: string,
+	input: HoldingInput,
+	lastPriceCents?: number
+) {
+	const current = getHolding(userId, holdingId);
 	if (!current) return;
-	// A new symbol invalidates the cached price; the next refresh refills it.
-	const symbolChanged = current.symbol !== input.symbol || current.assetClass !== input.assetClass;
+	const price = isSameQuote(current, input)
+		? {}
+		: {
+				lastPriceCents: lastPriceCents ?? null,
+				lastPriceAt: lastPriceCents !== undefined ? new Date() : null
+			};
 	db.update(holding)
-		.set({ ...input, ...(symbolChanged ? { lastPriceCents: null, lastPriceAt: null } : {}) })
+		.set({ ...input, ...price })
 		.where(and(eq(holding.userId, userId), eq(holding.id, holdingId)))
 		.run();
+}
+
+export function isSameQuote(
+	a: Pick<HoldingInput, 'symbol' | 'assetClass'>,
+	b: Pick<HoldingInput, 'symbol' | 'assetClass'>
+): boolean {
+	return a.symbol === b.symbol && a.assetClass === b.assetClass;
 }
 
 export function deleteHolding(userId: string, holdingId: string) {
@@ -58,6 +90,7 @@ export function deleteHolding(userId: string, holdingId: string) {
 
 export function hasStalePrices(userId: string, now = new Date()): boolean {
 	const cutoff = new Date(now.getTime() - PRICE_MAX_AGE_MS);
+	if ((lastAttemptAt.get(userId) ?? 0) > cutoff.getTime()) return false;
 	const stale = db
 		.select({ id: holding.id })
 		.from(holding)
@@ -74,8 +107,10 @@ export function hasStalePrices(userId: string, now = new Date()): boolean {
 
 /**
  * Refetch prices for every holding (or one user's) and record today's net
- * worth snapshot for each affected user. Returns how many holdings got a
- * fresh price. Network failures leave the previous price in place.
+ * worth snapshot for each user that got at least one fresh price. Returns
+ * how many holdings got a fresh price. Network failures leave the previous
+ * price in place and write no snapshot, so outages don't freeze stale
+ * values into the history.
  */
 export async function refreshPrices(
 	opts: { userId?: string; now?: Date; fetchFn?: typeof fetch } = {}
@@ -83,22 +118,36 @@ export async function refreshPrices(
 	const now = opts.now ?? new Date();
 	const rows = opts.userId ? listHoldings(opts.userId) : db.select().from(holding).all();
 	if (rows.length === 0) return 0;
+	for (const userId of new Set(rows.map((r) => r.userId))) lastAttemptAt.set(userId, now.getTime());
 
 	const prices = await fetchPricesCents(rows, opts.fetchFn);
+	const refreshedUsers = new Set<string>();
 	let updated = 0;
 	db.transaction((tx) => {
 		for (const r of rows) {
 			const cents = prices.get(quoteKey(r));
 			if (cents === undefined) continue;
-			tx.update(holding)
+			// Match the quote identity read before the fetch: if the user
+			// switched the symbol meanwhile, this price belongs to the old one.
+			const matched = tx
+				.update(holding)
 				.set({ lastPriceCents: cents, lastPriceAt: now })
-				.where(eq(holding.id, r.id))
-				.run();
+				.where(
+					and(
+						eq(holding.id, r.id),
+						eq(holding.symbol, r.symbol),
+						eq(holding.assetClass, r.assetClass)
+					)
+				)
+				.returning({ id: holding.id })
+				.all();
+			if (matched.length === 0) continue;
+			refreshedUsers.add(r.userId);
 			updated++;
 		}
 	});
 
-	for (const userId of new Set(rows.map((r) => r.userId))) recordSnapshot(userId, now);
+	for (const userId of refreshedUsers) recordSnapshot(userId, now);
 	return updated;
 }
 

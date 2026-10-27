@@ -194,10 +194,11 @@ export const holding = sqliteTable(
 		label: text().notNull(),
 		// Fractional units (0.0123 BTC) — the one place we don't use integers.
 		quantity: real().notNull(),
-		// Average unit cost (PRU) in euro cents.
-		avgCostCents: integer().notNull().default(0),
-		// Last fetched unit price, already converted to euro cents.
-		lastPriceCents: integer(),
+		// Average unit cost (PRU) and last fetched unit price, in euro cents.
+		// Fractional on purpose: a unit can be worth far less than a cent
+		// (memecoins); only aggregated position values get rounded.
+		avgCostCents: real().notNull().default(0),
+		lastPriceCents: real(),
 		lastPriceAt: integer({ mode: 'timestamp' }),
 		createdAt: now()
 	},
