@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 const cuid = () =>
 	text()
@@ -175,6 +175,54 @@ export const transaction = sqliteTable(
 );
 
 // ============================================================
+// Net worth (patrimoine)
+// ============================================================
+
+export const holding = sqliteTable(
+	'holding',
+	{
+		id: cuid(),
+		userId: text()
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		assetClass: text({ enum: ['etf', 'stock', 'crypto'] }).notNull(),
+		// Free-form wrapper the position lives in: "PEA", "CTO", "Ledger"…
+		wallet: text().notNull(),
+		// Quote identifier: Yahoo Finance ticker (CW8.PA, AAPL) for ETFs and
+		// stocks, CoinGecko coin id (bitcoin, solana) for crypto.
+		symbol: text().notNull(),
+		label: text().notNull(),
+		// Fractional units (0.0123 BTC) — the one place we don't use integers.
+		quantity: real().notNull(),
+		// Average unit cost (PRU) in euro cents.
+		avgCostCents: integer().notNull().default(0),
+		// Last fetched unit price, already converted to euro cents.
+		lastPriceCents: integer(),
+		lastPriceAt: integer({ mode: 'timestamp' }),
+		createdAt: now()
+	},
+	(t) => [index('holding_user_idx').on(t.userId)]
+);
+
+// One row per user per day, written when prices are refreshed; feeds the
+// net worth history chart.
+export const netWorthSnapshot = sqliteTable(
+	'net_worth_snapshot',
+	{
+		id: cuid(),
+		userId: text()
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		// ISO YYYY-MM-DD.
+		date: text().notNull(),
+		holdingsCents: integer().notNull(),
+		investedCents: integer().notNull(),
+		cashCents: integer().notNull()
+	},
+	(t) => [uniqueIndex('nws_user_date_unique').on(t.userId, t.date)]
+);
+
+// ============================================================
 // Inferred types (used by services)
 // ============================================================
 
@@ -184,3 +232,5 @@ export type Envelope = typeof envelope.$inferSelect;
 export type Category = typeof category.$inferSelect;
 export type Transaction = typeof transaction.$inferSelect;
 export type Recurring = typeof recurring.$inferSelect;
+export type Holding = typeof holding.$inferSelect;
+export type NetWorthSnapshot = typeof netWorthSnapshot.$inferSelect;

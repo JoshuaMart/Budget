@@ -88,3 +88,13 @@ export const ratiosInput = z
 		message: 'Les ratios doivent additionner à 100'
 	});
 export type RatiosInput = z.infer<typeof ratiosInput>;
+
+export const holdingInput = z.object({
+	assetClass: z.enum(['etf', 'stock', 'crypto']),
+	wallet: z.string().trim().min(1, 'Enveloppe requise').max(40),
+	symbol: z.string().trim().min(1, 'Symbole requis').max(40),
+	label: z.string().trim().min(1, 'Libellé requis').max(80),
+	quantity: z.number().positive('Quantité invalide'),
+	avgCostCents: z.number().int().min(0, 'Prix de revient invalide')
+});
+export type HoldingInput = z.infer<typeof holdingInput>;

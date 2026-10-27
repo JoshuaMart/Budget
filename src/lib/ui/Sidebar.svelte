@@ -20,7 +20,8 @@
 		{ href: resolve('/'), icon: 'home', label: 'Tableau de bord' },
 		{ href: resolve('/transactions'), icon: 'list', label: 'Transactions' },
 		{ href: resolve('/recurring'), icon: 'wallet', label: 'Récurrents' },
-		{ href: resolve('/stats'), icon: 'chart', label: 'Statistiques' }
+		{ href: resolve('/stats'), icon: 'chart', label: 'Statistiques' },
+		{ href: resolve('/patrimoine'), icon: 'piggy', label: 'Patrimoine' }
 	] as const;
 
 	let totalBalance = $derived(accounts.reduce((sum, a) => sum + a.currentBalanceCents, 0));

@@ -1,6 +1,7 @@
 export { default as AuthShell } from './AuthShell.svelte';
 export { default as Button } from './Button.svelte';
 export { default as EnvelopeTag } from './EnvelopeTag.svelte';
+export { default as HoldingModal } from './HoldingModal.svelte';
 export { default as Icon, type IconName } from './Icon.svelte';
 export { default as Input } from './Input.svelte';
 export { default as Modal } from './Modal.svelte';

@@ -3,4 +3,5 @@ export * from './budget';
 export * from './compliance';
 export * from './dates';
 export * from './money';
+export * from './portfolio';
 export * from './recurring';
