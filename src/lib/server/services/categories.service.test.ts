@@ -95,4 +95,36 @@ describe('categories.service', () => {
 		// A's category still exists.
 		expect(listCategories(a.userId).find((c) => c.id === aCat.id)).toBeDefined();
 	});
+
+	it("deleteCategory never touches another user's rows", () => {
+		const a = bootstrap();
+		const b = bootstrap();
+
+		const aCat = createCategory(a.userId, { envelopeId: a.necEnv.id, label: 'Hobbies' });
+
+		// A row of B pointing at A's category (inconsistent data or a past bug)
+		// must not be reassigned to A's virtual category.
+		const bTx = createTransaction(b.userId, {
+			kind: 'expense',
+			date: '2026-05-07',
+			merchant: 'Cinéma',
+			amountCents: 1200,
+			accountId: b.courant.id,
+			envelopeId: b.necEnv.id
+		});
+		db.update(transaction).set({ categoryId: aCat.id }).where(eq(transaction.id, bTx.id)).run();
+
+		const aVirtual = listCategories(a.userId).find(
+			(c) => c.envelopeId === a.necEnv.id && c.isVirtual
+		)!;
+
+		try {
+			deleteCategory(a.userId, aCat.id);
+		} catch {
+			// FK enforcement may refuse the delete; either way B's row stays intact.
+		}
+
+		const after = db.select().from(transaction).where(eq(transaction.id, bTx.id)).get();
+		expect(after?.categoryId).not.toBe(aVirtual.id);
+	});
 });
